@@ -15,3 +15,14 @@ html body .hs .sheet button,html body .hs .sheet select{background:#2C2C2E}
 html body .hs input[type=range]{accent-color:var(--clay)}
 html body .hs button:focus-visible,html body .hs input:focus-visible,html body .hs select:focus-visible{outline-color:#FFFFFF}
 html body .hs .sheet button.go{background:var(--clay);border-color:var(--clay);color:#111111}
+/* More orange: brand title, camera frame, bottom tools, frame numbers and setting values */
+html body .hs h1{color:var(--clay)}
+html body .hs .stage{border:2px solid var(--clay)}
+html body .hs button.tool:not([aria-pressed=true]){border-color:var(--clay);color:var(--clay)}
+html body .hs button.tool:disabled{border-color:#3A3A3C;color:var(--ink)}
+html body .hs .th b{background:var(--clay);color:#111111}
+html body .hs .field b{color:var(--clay)}
+html body .hs .grab{background:var(--clay)}
+html body .hs .sheet{border-top:2px solid var(--clay)}
+html body .hs .shutter{border-color:var(--clay)}
+html body .hs .shutter i{background:var(--clay);box-shadow:inset 0 0 0 4px #111111}
