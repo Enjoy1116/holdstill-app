@@ -4,7 +4,7 @@ const { useState, useRef, useEffect, useMemo } = React;
 let W = 800, H = 1200;
 const RATIOS = { tall: [720, 1280], square: [1080, 1080], wide: [1280, 720] };
 const LABELS = { fit: "Fit screen", tall: "Tall 9:16", square: "Square", wide: "Wide 16:9" };
-const DEFAULTS = { frames: [], fps: 8, ratio: "fit", dims: [800, 1200], voice: null, deflicker: true, pingpong: false };
+const DEFAULTS = { frames: [], fps: 8, ratio: "fit", dims: [800, 1200], voice: null, vol: 1, music: null, musicName: "", musicVol: 0.6, deflicker: true, pingpong: false, fadeIn: false, fadeOut: false, chroma: false, chromaBg: null, chromaTol: 0.5 };
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 // ---------- storage (same database name as before, so old work is kept) ----------
@@ -150,65 +150,191 @@ function flickerGains(imgs) {
     return Math.min(1.25, Math.max(0.8, s / n / m));
   });
 }
-function drawFrame(g, img, k) {
+// Every frame can be held for several beats; ping-pong plays forward, then back.
+function buildSeq(frames, pingpong) {
+  const idx = [];
+  frames.forEach((f, i) => { const h = Math.max(1, f.hold || 1); for (let k = 0; k < h; k++) idx.push(i); });
+  return pingpong && idx.length > 2 ? [...idx, ...idx.slice(1, -1).reverse()] : idx;
+}
+const fadeAlpha = (pos, len, fps, fin, fout) => {
+  const n = Math.max(1, Math.round(fps * 0.6));
+  let a = 0;
+  if (fin && pos < n) a = Math.max(a, 1 - (pos + 1) / (n + 1));
+  if (fout && pos >= len - n) a = Math.max(a, 1 - (len - pos) / (n + 1));
+  return a;
+};
+// The "look" of the movie: flicker fix and green screen, prepared once for Preview and for the video.
+async function prepareLook({ imgs, deflicker, chroma, chromaBg, chromaTol }) {
+  const gains = deflicker ? flickerGains(imgs) : null;
+  let bg = null;
+  if (chroma && chromaBg) {
+    try {
+      const im = await loadImg(chromaBg);
+      const c = document.createElement("canvas"); c.width = W; c.height = H;
+      const g = c.getContext("2d"); cover(g, im); bg = g.getImageData(0, 0, W, H).data;
+    } catch {}
+  }
+  return { gains, bg, t: 90 - (chromaTol == null ? 0.5 : chromaTol) * 70 };
+}
+function renderFrame(g, img, i, look, fade) {
   g.drawImage(img, 0, 0, W, H);
-  if (k && Math.abs(k - 1) > 0.01) {
-    const d = g.getImageData(0, 0, W, H), a = d.data;
-    for (let j = 0; j < a.length; j += 4) { a[j] *= k; a[j + 1] *= k; a[j + 2] *= k; }
+  const k = look && look.gains ? look.gains[i] : 1, bg = look && look.bg;
+  if (bg || Math.abs(k - 1) > 0.01) {
+    const d = g.getImageData(0, 0, W, H), a = d.data, t = look.t;
+    for (let j = 0; j < a.length; j += 4) {
+      if (bg && a[j + 1] - Math.max(a[j], a[j + 2]) > t) { a[j] = bg[j]; a[j + 1] = bg[j + 1]; a[j + 2] = bg[j + 2]; continue; }
+      if (k !== 1) { a[j] *= k; a[j + 1] *= k; a[j + 2] *= k; }
+    }
     g.putImageData(d, 0, 0);
   }
+  if (fade > 0) { g.fillStyle = `rgba(0,0,0,${fade})`; g.fillRect(0, 0, W, H); }
 }
-const sequence = (n, pingpong) => {
-  const s = [...Array(n).keys()];
-  return pingpong && n > 2 ? [...s, ...s.slice(1, -1).reverse()] : s;
-};
 
-// ---------- Create video: join every frame into one movie file ----------
-async function renderVideo({ frames, fps, voice, vol, deflicker, pingpong, onProgress }) {
+// ---------- Built-in music, made right here in the app (free to use) ----------
+const TRACKS = { bouncy: "Bouncy", chill: "Chill", spooky: "Spooky" };
+function synthTrack(style) {
+  const sr = 22050, bpm = { bouncy: 128, chill: 80, spooky: 100 }[style] || 110, beat = 60 / bpm, bar = beat * 4, bars = 8;
+  const len = Math.round(sr * bar * bars), out = new Float32Array(len);
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const tone = (t0, dur, m, vol, wave, decay = 3) => {
+    const f = hz(m), s0 = Math.floor(t0 * sr), n = Math.floor(dur * sr);
+    for (let i = 0; i < n && s0 + i < len; i++) {
+      const t = i / sr, ph = (f * t) % 1;
+      const v = wave === "sq" ? (ph < 0.5 ? 0.6 : -0.6) : wave === "tri" ? 1 - 4 * Math.abs(ph - 0.5) : Math.sin(2 * Math.PI * ph);
+      out[s0 + i] += v * vol * Math.min(1, i / (0.008 * sr)) * Math.exp((-decay * t) / dur);
+    }
+  };
+  const prog = style === "spooky" ? [[57, 60, 64], [50, 53, 57], [52, 56, 59], [57, 60, 64]]
+    : style === "chill" ? [[53, 57, 60, 64], [52, 55, 59, 62], [50, 53, 57, 60], [48, 52, 55, 59]]
+    : [[48, 52, 55], [43, 47, 50], [45, 48, 52], [41, 45, 48]];
+  for (let b = 0; b < bars; b++) {
+    const ch = prog[b % 4], t0 = b * bar;
+    if (style === "chill") {
+      ch.forEach((m) => tone(t0, bar, m + 12, 0.07, "sin", 1.2));
+      tone(t0, bar, ch[0] - 12, 0.18, "sin", 1.5);
+      [0, 1.5, 2.5].forEach((q, j) => tone(t0 + q * beat, beat * 1.4, ch[(j + 1) % ch.length] + 24, 0.05, "sin", 2.5));
+    } else if (style === "spooky") {
+      for (let q = 0; q < 8; q++) tone(t0 + (q * beat) / 2, beat / 2, ch[q % 3] + (q % 4 === 3 ? 12 : 0), 0.1, "tri", 4);
+      tone(t0, bar, ch[0] - 12, 0.2, "sin", 1);
+    } else {
+      for (let q = 0; q < 8; q++) tone(t0 + (q * beat) / 2, beat / 2, ch[[0, 1, 2, 1][q % 4]] + 12, 0.09, "sq", 5);
+      for (let q = 0; q < 4; q++) tone(t0 + q * beat, beat * 0.9, ch[0] - (q % 2 ? 0 : 12), 0.22, "tri", 3);
+    }
+  }
+  let peak = 0; for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(out[i]));
+  const k = peak ? 0.8 / peak : 1;
+  const buf = new ArrayBuffer(44 + len * 2), v = new DataView(buf);
+  const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  str(0, "RIFF"); v.setUint32(4, 36 + len * 2, true); str(8, "WAVE"); str(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, "data"); v.setUint32(40, len * 2, true);
+  for (let i = 0; i < len; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, out[i] * k)) * 32767, true);
+  return new Blob([buf], { type: "audio/wav" });
+}
+
+// ---------- small helpers ----------
+const blobToData = (b) => new Promise((ok) => { if (!b) return ok(null); const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => ok(null); r.readAsDataURL(b); });
+const dataToBlob = async (u) => { try { return u ? await (await fetch(u)).blob() : null; } catch { return null; } };
+const safeName = (s) => (s || "framey").replace(/[^\w-]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "framey";
+async function shareOrDownload(file, setMsg) {
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: file.name }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  const u = URL.createObjectURL(file); const a = document.createElement("a"); a.href = u; a.download = file.name; a.click();
+  setTimeout(() => URL.revokeObjectURL(u), 4000);
+  if (setMsg) setMsg(`Saved ${file.name} to your downloads.`);
+}
+function drawTitle(c, text, bg) {
+  c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.fillStyle = ["#FFFFFF", "#FFD60A"].includes(bg) ? "#111111" : "#FFFFFF";
+  const lines = (text || " ").split("\n");
+  g.font = "800 100px 'Bricolage Grotesque', system-ui, sans-serif";
+  const widest = Math.max(...lines.map((l) => g.measureText(l).width), 1);
+  const size = Math.min(W * 0.16, (W * 0.84 * 100) / widest, (H * 0.7) / (lines.length * 1.15));
+  g.font = `800 ${size}px 'Bricolage Grotesque', system-ui, sans-serif`;
+  g.textAlign = "center"; g.textBaseline = "middle";
+  const top = H / 2 - ((lines.length - 1) * size * 1.15) / 2;
+  lines.forEach((l, i) => g.fillText(l, W / 2, top + i * size * 1.15));
+}
+
+// ---------- Create video: join every frame into one movie file, with music and voice ----------
+async function renderVideo({ frames, fps, voice, vol, music, musicVol, pingpong, fadeIn, fadeOut, look: lookOpts, onProgress }) {
   const imgs = await Promise.all(frames.map((f) => loadImg(f.src)));
-  const gains = deflicker ? flickerGains(imgs) : null;
-  const seq = sequence(imgs.length, pingpong);
+  const look = await prepareLook({ imgs, ...lookOpts });
+  const seq = buildSeq(frames, pingpong);
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const g = c.getContext("2d", { willReadFrequently: true });
-  drawFrame(g, imgs[seq[0]], gains && gains[seq[0]]);
+  renderFrame(g, imgs[seq[0]], seq[0], look, fadeAlpha(0, seq.length, fps, fadeIn, fadeOut));
   const stream = c.captureStream(fps);
-  let ac, node;
-  if (voice) {
+  const len = seq.length / fps;
+  let ac = null;
+  const tracks = [];
+  if (voice || music) {
     ac = new AudioContext(); await ac.resume();
-    const buf = await ac.decodeAudioData(await voice.arrayBuffer());
-    const gain = ac.createGain(), dest = ac.createMediaStreamDestination();
-    node = ac.createBufferSource(); node.buffer = buf; gain.gain.value = vol;
-    node.connect(gain).connect(dest);
+    const dest = ac.createMediaStreamDestination();
+    for (const [blob, v, loop] of [[voice, vol, false], [music, musicVol, true]]) {
+      if (!blob) continue;
+      try {
+        const buf = await ac.decodeAudioData(await blob.arrayBuffer());
+        const n = ac.createBufferSource(); n.buffer = buf; n.loop = loop;
+        const gn = ac.createGain(); gn.gain.value = v;
+        n.connect(gn).connect(dest); tracks.push({ n, gn, v });
+      } catch {}
+    }
     dest.stream.getAudioTracks().forEach((t) => stream.addTrack(t));
   }
   const mime = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "";
   const mr = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 8e6 } : undefined), out = [];
   mr.ondataavailable = (e) => e.data.size && out.push(e.data);
   const done = new Promise((ok) => (mr.onstop = ok));
-  mr.start(); if (node) node.start();
+  mr.start();
+  if (ac) {
+    const t0 = ac.currentTime;
+    tracks.forEach(({ n, gn, v }) => {
+      n.start(t0);
+      if (fadeOut && len > 1) { gn.gain.setValueAtTime(v, t0 + Math.max(0, len - 0.8)); gn.gain.linearRampToValueAtTime(0, t0 + len); }
+    });
+  }
   for (let i = 0; i < seq.length; i++) {
-    drawFrame(g, imgs[seq[i]], gains && gains[seq[i]]);
+    renderFrame(g, imgs[seq[i]], seq[i], look, fadeAlpha(i, seq.length, fps, fadeIn, fadeOut));
     onProgress && onProgress((i + 1) / seq.length);
     await new Promise((r) => setTimeout(r, 1000 / fps));
   }
+  tracks.forEach(({ n }) => { try { n.stop(); } catch {} });
   mr.stop(); await done; if (ac) ac.close();
   const type = mr.mimeType || mime || "video/webm";
   return { blob: new Blob(out, { type }), ext: type.includes("mp4") ? "mp4" : "webm" };
 }
 
 // ================= Movies screen =================
-function Projects({ list, onNew, onOpen, onRename, onDuplicate, onDelete }) {
+function Projects({ list, msg, onNew, onOpen, onRename, onDuplicate, onDelete, onBackup, onRestore }) {
   const [editing, setEditing] = useState(null);
   const [name, setName] = useState("");
   const [confirm, setConfirm] = useState(null);
+  const restore = useRef();
+  const standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone;
+  const [tip, setTip] = useState(() => { try { return !standalone && localStorage.getItem("framey-tip") !== "no"; } catch { return !standalone; } });
+  const hideTip = () => { setTip(false); try { localStorage.setItem("framey-tip", "no"); } catch {} };
   return (
     <div className="hs">
       <style>{css}</style>
+      <input ref={restore} type="file" hidden onChange={(e) => { const f = e.target.files[0]; if (f) onRestore(f); e.target.value = ""; }} />
       <header className="top">
         <div className="titles"><h1>Framey</h1><span className="sub">Your movies</span></div>
-        <button className="pill go" onClick={onNew}>New movie</button>
+        <div className="hbtns">
+          <button className="pill" onClick={() => restore.current.click()}>Restore</button>
+          <button className="pill go" onClick={onNew}>New movie</button>
+        </div>
       </header>
       <main className="plist">
+        {tip && (
+          <div className="tipcard">
+            <p><b>Keep your movies safe.</b> Add Framey to your home screen: tap Share in Safari, then Add to Home Screen. It opens full screen and works offline.</p>
+            <button className="pill" onClick={hideTip}>Got it</button>
+          </div>
+        )}
+        {msg && <p className="tipcard" role="status">{msg}</p>}
         {!list.length && (
           <div className="empty">
             <p>Make your first stop-motion movie. Every movie saves on this phone automatically.</p>
@@ -238,6 +364,7 @@ function Projects({ list, onNew, onOpen, onRename, onDuplicate, onDelete }) {
               <div className="pacts">
                 <button onClick={() => { setName(p.name); setEditing(p.id); }}>Rename</button>
                 <button onClick={() => onDuplicate(p.id)}>Copy</button>
+                <button onClick={() => onBackup(p.id)}>Back up</button>
                 <button onClick={() => setConfirm(p.id)}>Delete</button>
               </div>
             )}
@@ -249,26 +376,36 @@ function Projects({ list, onNew, onOpen, onRename, onDuplicate, onDelete }) {
 }
 
 // ================= Full-screen preview =================
-function Preview({ frames, fps, setFps, voiceUrl, vol, deflicker, pingpong, setPingpong, onClose, onCreate }) {
-  const cv = useRef(), aud = useRef();
+function Preview({ frames, fps, setFps, voiceUrl, vol, musicUrl, musicVol, look: lookOpts, pingpong, setPingpong, fadeIn, fadeOut, onClose, onCreate }) {
+  const cv = useRef(), aud = useRef(), mus = useRef();
   const [imgs, setImgs] = useState(null);
+  const [look, setLook] = useState(null);
   const [i, setI] = useState(0);
   const [play, setPlay] = useState(true);
   const [loop, setLoop] = useState(true);
-  const seq = useMemo(() => sequence(frames.length, pingpong), [frames.length, pingpong]);
-  const gains = useMemo(() => (imgs && deflicker ? flickerGains(imgs) : null), [imgs, deflicker]);
-  useEffect(() => { Promise.all(frames.map((f) => loadImg(f.src))).then(setImgs).catch(() => {}); }, [frames]);
+  const seq = useMemo(() => buildSeq(frames, pingpong), [frames, pingpong]);
+  useEffect(() => {
+    let dead = false;
+    Promise.all(frames.map((f) => loadImg(f.src)))
+      .then(async (ims) => { const lk = await prepareLook({ imgs: ims, ...lookOpts }); if (!dead) { setLook(lk); setImgs(ims); } })
+      .catch(() => {});
+    return () => { dead = true; };
+  }, [frames, lookOpts.deflicker, lookOpts.chroma, lookOpts.chromaBg, lookOpts.chromaTol]);
   useEffect(() => {
     if (!imgs || !cv.current) return;
-    const c = cv.current; c.width = W; c.height = H;
-    const k = seq[Math.min(i, seq.length - 1)];
-    drawFrame(c.getContext("2d", { willReadFrequently: true }), imgs[k], gains && gains[k]);
-  }, [i, imgs, gains, seq]);
+    const c = cv.current;
+    if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+    const p = Math.min(i, seq.length - 1), k = seq[p];
+    renderFrame(c.getContext("2d", { willReadFrequently: true }), imgs[k], k, look, fadeAlpha(p, seq.length, fps, fadeIn, fadeOut));
+  }, [i, imgs, look, seq, fadeIn, fadeOut]);
   useEffect(() => {
-    if (!play || !imgs) { if (aud.current) aud.current.pause(); return; }
-    const a = aud.current;
-    const sound = () => { if (voiceUrl && a) { a.volume = vol; a.currentTime = 0; a.play().catch(() => {}); } };
+    if (!play || !imgs) { [aud.current, mus.current].forEach((a) => a && a.pause()); return; }
+    const sound = () => {
+      if (voiceUrl && aud.current) { aud.current.volume = vol; aud.current.currentTime = 0; aud.current.play().catch(() => {}); }
+      if (musicUrl && mus.current) { mus.current.volume = musicVol; mus.current.currentTime = 0; mus.current.play().catch(() => {}); }
+    };
     if (i === 0) sound();
+    else if (musicUrl && mus.current && mus.current.paused) { mus.current.volume = musicVol; mus.current.play().catch(() => {}); }
     const t = setInterval(() => {
       setI((n) => {
         if (n + 1 < seq.length) return n + 1;
@@ -278,9 +415,12 @@ function Preview({ frames, fps, setFps, voiceUrl, vol, deflicker, pingpong, setP
     }, 1000 / fps);
     return () => clearInterval(t);
   }, [play, imgs, fps, loop, seq.length]);
+  useEffect(() => { if (mus.current) mus.current.volume = musicVol; }, [musicVol]);
+  const p = Math.min(i, Math.max(0, seq.length - 1));
   return (
     <div className="over" role="dialog" aria-label="Preview">
       <audio ref={aud} src={voiceUrl || undefined} preload="auto" />
+      <audio ref={mus} src={musicUrl || undefined} loop preload="auto" />
       <div className="bar">
         <button className="pill" onClick={onClose}>Back</button>
         <strong className="otitle">Preview</strong>
@@ -292,9 +432,9 @@ function Preview({ frames, fps, setFps, voiceUrl, vol, deflicker, pingpong, setP
       <div className="pctl">
         <div className="bar">
           <button className="pill go" onClick={() => { if (!play && i >= seq.length - 1) setI(0); setPlay(!play); }}>{play ? "Pause" : "Play"}</button>
-          <input type="range" min="0" max={Math.max(0, seq.length - 1)} value={i} aria-label="Scrub through frames"
+          <input type="range" min="0" max={Math.max(0, seq.length - 1)} value={p} aria-label="Scrub through frames"
             onChange={(e) => { setPlay(false); setI(+e.target.value); }} />
-          <span className="sub">{seq[i] + 1} / {frames.length}</span>
+          <span className="sub">{(seq[p] || 0) + 1} / {frames.length}</span>
         </div>
         <label className="field">Speed
           <input type="range" min="1" max="24" value={fps} onChange={(e) => setFps(+e.target.value)} /><b>{fps} fps</b></label>
@@ -302,6 +442,96 @@ function Preview({ frames, fps, setFps, voiceUrl, vol, deflicker, pingpong, setP
           <button aria-pressed={loop} onClick={() => setLoop(!loop)}>Loop</button>
           <button aria-pressed={pingpong} onClick={() => { setPingpong(!pingpong); setI(0); }}>Ping-pong</button>
           <span className="sub">{(seq.length / fps).toFixed(1)} s long</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ================= Draw on a frame =================
+const INKS = ["#FFFFFF", "#111111", "#FE6100", "#648FFF", "#FFD60A", "#FF453A", "#30D158"];
+function Drawer({ src, onSave, onClose }) {
+  const cv = useRef(), img = useRef(null), strokes = useRef([]), cur = useRef(null);
+  const [ink, setInk] = useState(INKS[0]);
+  const [size, setSize] = useState(10);
+  const [count, setCount] = useState(0);
+  const redraw = () => {
+    const c = cv.current;
+    if (!c || !img.current) return;
+    const g = c.getContext("2d");
+    g.drawImage(img.current, 0, 0, W, H);
+    g.lineCap = "round"; g.lineJoin = "round";
+    for (const s of strokes.current) {
+      g.strokeStyle = s.c; g.lineWidth = s.w; g.beginPath();
+      s.p.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+      if (s.p.length === 1) g.lineTo(s.p[0][0] + 0.1, s.p[0][1]);
+      g.stroke();
+    }
+  };
+  useEffect(() => {
+    loadImg(src).then((im) => { img.current = im; const c = cv.current; if (!c) return; c.width = W; c.height = H; redraw(); }).catch(() => {});
+  }, [src]);
+  const pt = (e) => { const r = cv.current.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * W, ((e.clientY - r.top) / r.height) * H]; };
+  const down = (e) => {
+    e.preventDefault();
+    try { cv.current.setPointerCapture(e.pointerId); } catch {}
+    cur.current = { c: ink, w: size * (W / 400), p: [pt(e)] };
+    strokes.current.push(cur.current); redraw();
+  };
+  const move = (e) => { if (!cur.current) return; cur.current.p.push(pt(e)); redraw(); };
+  const up = () => { if (cur.current) { cur.current = null; setCount(strokes.current.length); } };
+  return (
+    <div className="over" role="dialog" aria-label="Draw on this frame">
+      <div className="bar">
+        <button className="pill" onClick={onClose}>Cancel</button>
+        <strong className="otitle">Draw</strong>
+        <button className="pill go" onClick={() => onSave(cv.current.toDataURL("image/jpeg", 0.9))}>Save</button>
+      </div>
+      <div className="pv">
+        <canvas ref={cv} className="drawcv" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
+          style={{ aspectRatio: `${W} / ${H}`, width: `min(100cqw, ${W / H} * 100cqh)` }} />
+      </div>
+      <div className="pctl">
+        <div className="row" role="group" aria-label="Color">
+          {INKS.map((c) => <button key={c} className="swatch" aria-pressed={ink === c} aria-label={`Color ${c}`} style={{ background: c }} onClick={() => setInk(c)} />)}
+        </div>
+        <div className="row">
+          {[["Thin", 5], ["Medium", 10], ["Thick", 22]].map(([l, v]) => <button key={l} aria-pressed={size === v} onClick={() => setSize(v)}>{l}</button>)}
+          <button onClick={() => { strokes.current.pop(); setCount(strokes.current.length); redraw(); }} disabled={!count}>Undo line</button>
+          <button onClick={() => { strokes.current = []; setCount(0); redraw(); }} disabled={!count}>Clear</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ================= Title cards =================
+const TITLE_BGS = ["#111111", "#FFFFFF", "#FE6100", "#648FFF", "#FFD60A"];
+function TitleMaker({ fps, hasSel, onAdd, onClose }) {
+  const cv = useRef();
+  const [text, setText] = useState("My movie");
+  const [bg, setBg] = useState(TITLE_BGS[0]);
+  const [secs, setSecs] = useState(2);
+  const [where, setWhere] = useState("start");
+  useEffect(() => { if (cv.current) drawTitle(cv.current, text, bg); }, [text, bg]);
+  return (
+    <div className="over" role="dialog" aria-label="Add a title card">
+      <div className="bar">
+        <button className="pill" onClick={onClose}>Cancel</button>
+        <strong className="otitle">Title card</strong>
+        <button className="pill go" onClick={() => onAdd({ id: uid(), src: cv.current.toDataURL("image/jpeg", 0.9), hold: Math.max(1, Math.round(secs * fps)) }, where)}>Add</button>
+      </div>
+      <div className="pv"><canvas ref={cv} style={{ aspectRatio: `${W} / ${H}`, width: `min(100cqw, ${W / H} * 100cqh)` }} /></div>
+      <div className="pctl">
+        <textarea className="ttext" rows="2" value={text} onChange={(e) => setText(e.target.value)} aria-label="Title text" />
+        <div className="row" role="group" aria-label="Background color">
+          {TITLE_BGS.map((c) => <button key={c} className="swatch" aria-pressed={bg === c} aria-label={`Background ${c}`} style={{ background: c }} onClick={() => setBg(c)} />)}
+        </div>
+        <label className="field">Show for<input type="range" min="1" max="5" step="0.5" value={secs} onChange={(e) => setSecs(+e.target.value)} /><b>{secs} s</b></label>
+        <div className="row" role="group" aria-label="Where to add it">
+          <button aria-pressed={where === "start"} onClick={() => setWhere("start")}>At the start</button>
+          {hasSel && <button aria-pressed={where === "after"} onClick={() => setWhere("after")}>After this frame</button>}
+          <button aria-pressed={where === "end"} onClick={() => setWhere("end")}>At the end</button>
         </div>
       </div>
     </div>
@@ -339,14 +569,26 @@ function Studio({ project, onBack, onMeta }) {
   const [flash, setFlash] = useState(0);
   const [rec, setRec] = useState(false);
   const [voice, setVoice] = useState(d.voice);
-  const [vol, setVol] = useState(1);
+  const [vol, setVol] = useState(d.vol);
+  const [music, setMusic] = useState(d.music);
+  const [musicName, setMusicName] = useState(d.musicName);
+  const [musicVol, setMusicVol] = useState(d.musicVol);
+  const [fadeIn, setFadeIn] = useState(d.fadeIn);
+  const [fadeOut, setFadeOut] = useState(d.fadeOut);
+  const [chroma, setChroma] = useState(d.chroma);
+  const [chromaBg, setChromaBg] = useState(d.chromaBg);
+  const [chromaTol, setChromaTol] = useState(d.chromaTol);
+  const [peek, setPeek] = useState(null);
+  const [drawing, setDrawing] = useState(false);
+  const [titling, setTitling] = useState(false);
   const [msg, setMsg] = useState("");
   const [preview, setPreview] = useState(false);
   const [making, setMaking] = useState(null);
   const [video, setVideo] = useState(null);
-  const vid = useRef(), cvs = useRef(), aud = useRef(), pick = useRef(), recorder = useRef(), viewRef = useRef(), stripRef = useRef(), ignoreScroll = useRef(0), scrubRaf = useRef(0), tipShown = useRef(false);
+  const vid = useRef(), cvs = useRef(), aud = useRef(), pick = useRef(), recorder = useRef(), viewRef = useRef(), stripRef = useRef(), ignoreScroll = useRef(0), scrubRaf = useRef(0), tipShown = useRef(false), musicPick = useRef(), bgPick = useRef(), peekT = useRef(null);
   const pos = useRef(0), dragFrom = useRef(null), live = useRef({}), lockRef = useRef(null), countT = useRef(null), beepCtx = useRef(null);
   const voiceUrl = useMemo(() => (voice ? URL.createObjectURL(voice) : null), [voice]);
+  const musicUrl = useMemo(() => (music ? URL.createObjectURL(music) : null), [music]);
   [W, H] = ratio === "fit" ? dims : RATIOS[ratio];
 
   const edit = (next) => { setPast((p) => [...p.slice(-19), frames]); setFrames(next); };
@@ -388,7 +630,7 @@ function Studio({ project, onBack, onMeta }) {
       else stopCount();
     }, 1000);
   };
-  useEffect(() => () => clearInterval(countT.current), []);
+  useEffect(() => () => { clearInterval(countT.current); clearInterval(peekT.current); }, []);
   const holdCam = (on) => {
     const t = vid.current && vid.current.srcObject && vid.current.srcObject.getVideoTracks()[0];
     const m = on ? "manual" : "continuous";
@@ -408,6 +650,27 @@ function Studio({ project, onBack, onMeta }) {
   const move = (i, j) => { if (j < 0 || j >= frames.length) return; const n = [...frames]; n.splice(j, 0, n.splice(i, 1)[0]); edit(n); setSel(j); setTimeout(() => centerThumb(j), 0); };
   const dup = () => { const f = { ...frames[sel], id: uid() }; edit([...frames.slice(0, sel + 1), f, ...frames.slice(sel + 1)]); setSel(sel + 1); };
   const del = () => { edit(frames.filter((_, i) => i !== sel)); setSel(null); };
+  const setHold = (dlt) => edit(frames.map((f, i) => (i === sel ? { ...f, hold: Math.min(24, Math.max(1, (f.hold || 1) + dlt)) } : f)));
+  // Play 6: replay the last few frames on the big screen, a quick motion check while animating
+  const playLast = () => {
+    if (!frames.length) return;
+    stopPlay(); setSel(null); clearInterval(peekT.current);
+    let i = Math.max(0, frames.length - 6); setPeek(i);
+    peekT.current = setInterval(() => { i += 1; if (i >= live.current.frames.length) { clearInterval(peekT.current); setPeek(null); } else setPeek(i); }, 1000 / fps);
+  };
+  const addTitle = (f, where) => {
+    const n = [...frames];
+    if (where === "start") n.unshift(f); else if (where === "after" && sel !== null) n.splice(sel + 1, 0, f); else n.push(f);
+    edit(n); setTitling(false); setMsg("Title card added.");
+  };
+  const pickBg = async (file) => {
+    try {
+      const im = await loadImg(URL.createObjectURL(file));
+      const c = document.createElement("canvas"); c.width = W; c.height = H; cover(c.getContext("2d"), im);
+      setChromaBg(c.toDataURL("image/jpeg", 0.85)); setChroma(true);
+      setMsg("Background set. Green parts of your frames will show this picture in Preview and your video.");
+    } catch { setMsg("Couldn't open that picture. Try another one."); }
+  };
   const stopPlay = () => { if (recorder.current && recorder.current.state === "recording") recorder.current.stop(); setPlaying(false); };
   const openPreview = () => { if (!frames.length) { setMsg("Take a few frames first."); return; } stopPlay(); setSel(null); setPreview(true); };
   live.current = { snap, shoot, del, undo, openPreview, sel, frames, playing, timer, timerRepeat };
@@ -464,7 +727,7 @@ function Studio({ project, onBack, onMeta }) {
     if (!frames.length) { setMsg("Take a few frames first."); return; }
     setPreview(false); stopPlay(); setMaking(0);
     try {
-      const r = await renderVideo({ frames, fps, voice, vol, deflicker, pingpong, onProgress: setMaking });
+      const r = await renderVideo({ frames, fps, voice, vol, music, musicVol, pingpong, fadeIn, fadeOut, look: { deflicker, chroma, chromaBg, chromaTol }, onProgress: setMaking });
       setVideo({ ...r, url: URL.createObjectURL(r.blob) });
     } catch { setMsg("Couldn't create the video. Your frames are safe. Try again in Safari or Chrome."); }
     setMaking(null);
@@ -482,11 +745,11 @@ function Studio({ project, onBack, onMeta }) {
   // autosave this movie, and tell the movies list about it
   useEffect(() => {
     const t = setTimeout(() => {
-      dbPut("proj:" + project.id, { frames, fps, voice, ratio, dims, deflicker, pingpong }).catch(() => setMsg("Couldn't save. Your phone may be out of space."));
+      dbPut("proj:" + project.id, { frames, fps, voice, vol, music, musicName, musicVol, ratio, dims, deflicker, pingpong, fadeIn, fadeOut, chroma, chromaBg, chromaTol }).catch(() => setMsg("Couldn't save. Your phone may be out of space."));
       onMeta(project.id, { count: frames.length });
     }, 600);
     return () => clearTimeout(t);
-  }, [frames, fps, voice, ratio, dims, deflicker, pingpong]);
+  }, [frames, fps, voice, vol, music, musicName, musicVol, ratio, dims, deflicker, pingpong, fadeIn, fadeOut, chroma, chromaBg, chromaTol]);
   const firstId = frames[0] && frames[0].id;
   useEffect(() => {
     if (!firstId) { onMeta(project.id, { thumb: null }); return; }
@@ -570,11 +833,12 @@ function Studio({ project, onBack, onMeta }) {
   useEffect(() => {
     if (!playing) return;
     if (!frames.length) { setPlaying(false); return; }
-    let i = 0; pos.current = 0; setPi(0);
+    const sq = buildSeq(frames, false);
+    let i = 0; pos.current = 0; setPi(sq[0]);
     const t = setInterval(() => {
       i += 1;
-      if (i >= frames.length) { stopPlay(); return; }
-      pos.current = i; setPi(i);
+      if (i >= sq.length) { stopPlay(); return; }
+      pos.current = i; setPi(sq[i]);
     }, 1000 / fps);
     return () => clearInterval(t);
   }, [playing, fps]);
@@ -601,7 +865,7 @@ function Studio({ project, onBack, onMeta }) {
     return () => clearTimeout(t);
   }, [msg]);
 
-  const cur = playing ? pi : sel;
+  const cur = playing ? pi : peek !== null ? peek : sel;
   const shown = cur !== null ? frames[cur] : null;
   const ghostFrames = cur === null ? frames.slice(-ghosts).reverse() : [];
   const fixStyle = fix ? { transform: `translate(${fix.x * 100}%, ${fix.y * (W / H) * 100}%) rotate(${fix.a}deg) scale(${fix.s})` } : undefined;
@@ -612,13 +876,15 @@ function Studio({ project, onBack, onMeta }) {
       <style>{css}</style>
       <canvas ref={cvs} hidden />
       <input ref={pick} type="file" accept="image/*" multiple hidden onChange={(e) => { importFiles([...e.target.files]); e.target.value = ""; }} />
+      <input ref={musicPick} type="file" accept="audio/*" hidden onChange={(e) => { const f = e.target.files[0]; if (f) { setMusic(f); setMusicName(f.name.replace(/\.[^.]+$/, "")); setMsg("Music added. It plays in Preview and your video."); } e.target.value = ""; }} />
+      <input ref={bgPick} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files[0]; if (f) pickBg(f); e.target.value = ""; }} />
 
       <header className="top">
         <div className="lead">
           <button className="pill" onClick={onBack} aria-label="Back to your movies">Movies</button>
           <div className="titles">
             <h1>{project.name}</h1>
-            <span className="sub">{frames.length} {frames.length === 1 ? "frame" : "frames"}, {(sequence(frames.length, pingpong).length / fps).toFixed(1)} s</span>
+            <span className="sub">{frames.length} {frames.length === 1 ? "frame" : "frames"}, {(buildSeq(frames, pingpong).length / fps).toFixed(1)} s</span>
           </div>
         </div>
         <button className="pill go" onClick={createVideo} disabled={!frames.length || making !== null}>Create video</button>
@@ -651,6 +917,7 @@ function Studio({ project, onBack, onMeta }) {
             <button aria-pressed={lock} onClick={toggleLock}>Lock</button>
             <button aria-pressed={grid} onClick={() => setGrid(!grid)}>Grid</button>
             <button aria-pressed={timer > 0} onClick={() => setTimer(timerNext[timer])}>{timer ? `${timer}s` : "Timer"}</button>
+            <button onClick={playLast} disabled={!frames.length}>Play 6</button>
             <button aria-pressed={clap} onClick={() => setClap(!clap)}>Clap</button>
             <button onClick={() => setFacing(facing === "environment" ? "user" : "environment")}>Flip</button>
           </div>
@@ -659,12 +926,16 @@ function Studio({ project, onBack, onMeta }) {
       </main>
 
       <footer className="dock">
-        {sel !== null && (
+        {sel !== null && frames[sel] && (
           <div className="acts">
             <button className="pill go" onClick={() => setSel(null)}>Camera</button>
             <button className="pill" onClick={() => move(sel, sel - 1)} disabled={sel === 0}>Earlier</button>
             <button className="pill" onClick={() => move(sel, sel + 1)} disabled={sel === frames.length - 1}>Later</button>
-            <button className="pill" onClick={dup}>Hold</button>
+            <button className="pill" onClick={() => setHold(-1)} disabled={(frames[sel].hold || 1) <= 1} aria-label="Hold this frame for less time">Hold −</button>
+            <span className="holdn" aria-label="Hold length">×{frames[sel].hold || 1}</span>
+            <button className="pill" onClick={() => setHold(1)} aria-label="Hold this frame for longer">Hold +</button>
+            <button className="pill" onClick={dup}>Copy</button>
+            <button className="pill" onClick={() => setDrawing(true)}>Draw</button>
             <button className="pill" onClick={del}>Delete</button>
           </div>
         )}
@@ -675,7 +946,7 @@ function Studio({ project, onBack, onMeta }) {
               onClick={() => { setPlaying(false); setSel(i); centerThumb(i); }}
               onDragStart={() => (dragFrom.current = i)} onDragOver={(e) => e.preventDefault()}
               onDrop={() => { if (dragFrom.current !== null && dragFrom.current !== i) move(dragFrom.current, i); dragFrom.current = null; }}>
-              <img src={f.src} alt={`Frame ${i + 1}`} draggable={false} /><b>{i + 1}</b>
+              <img src={f.src} alt={`Frame ${i + 1}`} draggable={false} /><b>{i + 1}</b>{(f.hold || 1) > 1 && <em>×{f.hold}</em>}
             </button>
           ))}
           {!frames.length && <p className="sub">Your frames appear here. Press Space to shoot.</p>}
@@ -693,30 +964,58 @@ function Studio({ project, onBack, onMeta }) {
       {sheet && (
         <div className="sheet" role="dialog" aria-label="Settings">
           <div className="grab" />
-          <label className="field">Speed<input type="range" min="1" max="24" value={fps} onChange={(e) => setFps(+e.target.value)} /><b>{fps} fps</b></label>
+          <strong className="sh">Camera</strong>
           <label className="field">Ghost frames<input type="range" min="0" max="3" value={ghosts} onChange={(e) => setGhosts(+e.target.value)} /><b>{ghosts}</b></label>
           <label className="field">Ghost strength<input type="range" min="0.1" max="0.9" step="0.05" value={ghostOp} onChange={(e) => setGhostOp(+e.target.value)} /></label>
-          <div className="row" role="group" aria-label="Frame shape">
-            {["fit", ...Object.keys(RATIOS)].map((k) => (
-              <button key={k} aria-pressed={ratio === k} disabled={!!frames.length && ratio !== k} onClick={() => { setRatio(k); setPast([]); }}>{LABELS[k]}</button>
-            ))}
-          </div>
-          <div className="row">
-            <button aria-pressed={deflicker} onClick={() => setDeflicker(!deflicker)}>Fix flicker</button>
-            <button aria-pressed={pingpong} onClick={() => setPingpong(!pingpong)}>Ping-pong</button>
-          </div>
           <div className="row">
             <label className="field">Self-timer
               <select value={timer} onChange={(e) => setTimer(+e.target.value)}>
                 <option value="0">Off</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option>
               </select></label>
             <button aria-pressed={timerRepeat} onClick={() => setTimerRepeat(!timerRepeat)}>Repeat timer</button>
+          </div>
+          <div className="row">
             <label className="field">Time-lapse
               <select value={lapse} onChange={(e) => setLapse(+e.target.value)}>
                 <option value="0">Off</option>
                 {[1, 2, 5, 10].map((s) => <option key={s} value={s}>Every {s} s</option>)}
               </select></label>
           </div>
+          <div className="row" role="group" aria-label="Frame shape">
+            {["fit", ...Object.keys(RATIOS)].map((k) => (
+              <button key={k} aria-pressed={ratio === k} disabled={!!frames.length && ratio !== k} onClick={() => { setRatio(k); setPast([]); }}>{LABELS[k]}</button>
+            ))}
+          </div>
+
+          <strong className="sh">Movie</strong>
+          <label className="field">Speed<input type="range" min="1" max="24" value={fps} onChange={(e) => setFps(+e.target.value)} /><b>{fps} fps</b></label>
+          <div className="row">
+            <button aria-pressed={deflicker} onClick={() => setDeflicker(!deflicker)}>Fix flicker</button>
+            <button aria-pressed={pingpong} onClick={() => setPingpong(!pingpong)}>Ping-pong</button>
+            <button aria-pressed={fadeIn} onClick={() => setFadeIn(!fadeIn)}>Fade in</button>
+            <button aria-pressed={fadeOut} onClick={() => setFadeOut(!fadeOut)}>Fade out</button>
+          </div>
+          <div className="row">
+            <button onClick={() => { setSheet(false); setTitling(true); }}>Add title card</button>
+            <button onClick={() => { edit([]); setSel(null); }} disabled={!frames.length}>Clear frames</button>
+          </div>
+
+          <strong className="sh">Sound</strong>
+          <div className="row">
+            <button onClick={() => musicPick.current.click()}>{music ? "Use a different song" : "Add your music"}</button>
+            <label className="field">Built-in music
+              <select value="" onChange={(e) => { const k = e.target.value; if (k) { setMusic(synthTrack(k)); setMusicName(`${TRACKS[k]} (built-in)`); } }}>
+                <option value="">Choose</option>
+                {Object.entries(TRACKS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select></label>
+          </div>
+          {music && (
+            <div className="row">
+              <span className="sub">Music: {musicName}</span>
+              <label className="field">Music volume<input type="range" min="0" max="1" step="0.05" value={musicVol} onChange={(e) => setMusicVol(+e.target.value)} /></label>
+              <button onClick={() => { setMusic(null); setMusicName(""); }}>Remove music</button>
+            </div>
+          )}
           <div className="row">
             <button aria-pressed={rec} onClick={voiceOver} disabled={!frames.length && !rec}>{rec ? "Stop recording" : voice ? "Re-record voice-over" : "Record voice-over"}</button>
             {voice && (
@@ -725,15 +1024,25 @@ function Studio({ project, onBack, onMeta }) {
                 <button onClick={() => setVoice(null)}>Remove voice-over</button>
               </>
             )}
-            <button onClick={() => { edit([]); setSel(null); }} disabled={!frames.length}>Clear frames</button>
           </div>
-          <p className="sub">Fix flicker evens out brightness jumps between frames in Preview and in your video. Ping-pong plays forward, then backward. Repeat timer keeps counting down and taking photos until you tap the shutter. Space or Enter takes a frame, P opens Preview, Ctrl+Z undoes. The frame shape can only change while the timeline is empty.</p>
+
+          <strong className="sh">Green screen</strong>
+          <div className="row">
+            <button aria-pressed={chroma} onClick={() => { if (!chromaBg && !chroma) bgPick.current.click(); setChroma(!chroma); }}>Green screen</button>
+            <button onClick={() => bgPick.current.click()}>{chromaBg ? "Change background" : "Choose background"}</button>
+            {chromaBg && <img className="bgthumb" src={chromaBg} alt="Green screen background" />}
+          </div>
+          {chroma && <label className="field">Strength<input type="range" min="0.1" max="0.9" step="0.05" value={chromaTol} onChange={(e) => setChromaTol(+e.target.value)} /></label>}
+          <p className="sub">Film in front of something bright green, like green paper. In Preview and your video, the green is swapped for your background picture.</p>
+
+          <p className="sub">Repeat timer keeps counting down and taking photos until you tap the shutter. Fix flicker evens out brightness jumps. Ping-pong plays forward, then backward. Play 6 replays your last 6 frames so you can check the motion. Tap a frame to hold it longer, draw on it, or copy it. Space or Enter takes a frame, P opens Preview, Ctrl+Z undoes.</p>
           <button className="pill go" onClick={() => setSheet(false)}>Done</button>
         </div>
       )}
 
       {preview && (
-        <Preview frames={frames} fps={fps} setFps={setFps} voiceUrl={voiceUrl} vol={vol} deflicker={deflicker}
+        <Preview frames={frames} fps={fps} setFps={setFps} voiceUrl={voiceUrl} vol={vol} musicUrl={musicUrl} musicVol={musicVol}
+          look={{ deflicker, chroma, chromaBg, chromaTol }} fadeIn={fadeIn} fadeOut={fadeOut}
           pingpong={pingpong} setPingpong={setPingpong} onClose={() => setPreview(false)} onCreate={createVideo} />
       )}
 
@@ -744,6 +1053,12 @@ function Studio({ project, onBack, onMeta }) {
           <p className="sub">{Math.round(making * 100)}%. Keep this screen open.</p>
         </div>
       )}
+
+      {drawing && sel !== null && frames[sel] && (
+        <Drawer src={frames[sel].src} onClose={() => setDrawing(false)}
+          onSave={(src) => { edit(frames.map((f, i) => (i === sel ? { ...f, src } : f))); setDrawing(false); setMsg("Drawing saved on this frame."); }} />
+      )}
+      {titling && <TitleMaker fps={fps} hasSel={sel !== null} onClose={() => setTitling(false)} onAdd={addTitle} />}
 
       {video && (
         <div className="over" role="dialog" aria-label="Your video">
@@ -766,8 +1081,11 @@ function Studio({ project, onBack, onMeta }) {
 function App() {
   const [list, setList] = useState(null);
   const [open, setOpen] = useState(null);
+  const [msg, setMsg] = useState("");
   const saveList = (fn) => setList((l) => { const n = fn(l || []); dbPut("projects", n).catch(() => {}); return n; });
 
+  useEffect(() => { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch {} }, []);
+  useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(""), 6000); return () => clearTimeout(t); }, [msg]);
   useEffect(() => {
     (async () => {
       let l = null;
@@ -812,13 +1130,34 @@ function App() {
     saveList((l) => { const i = l.findIndex((x) => x.id === id); const n = [...l]; n.splice(i + 1, 0, { ...p, id: nid, name: `${p.name} copy`, updated: Date.now() }); return n; });
   };
   const onDelete = async (id) => { await dbDel("proj:" + id); saveList((l) => l.filter((p) => p.id !== id)); };
+  // Back up a movie as one file (frames, sound and settings) you can keep in Files and restore later
+  const onBackup = async (id) => {
+    const p = list.find((x) => x.id === id);
+    try {
+      const data = (await dbGet("proj:" + id)) || { ...DEFAULTS };
+      const out = { app: "framey", v: 1, name: p.name, data: { ...data, voice: await blobToData(data.voice), music: await blobToData(data.music) } };
+      await shareOrDownload(new File([JSON.stringify(out)], `${safeName(p.name)}.framey`, { type: "application/json" }), setMsg);
+    } catch { setMsg("Couldn't back up this movie. Try again."); }
+  };
+  const onRestore = async (file) => {
+    try {
+      const o = JSON.parse(await file.text());
+      if (!o || o.app !== "framey" || !o.data) throw new Error("not framey");
+      const data = { ...DEFAULTS, ...o.data, voice: await dataToBlob(o.data.voice), music: await dataToBlob(o.data.music) };
+      const id = uid();
+      await dbPut("proj:" + id, data);
+      const thumb = data.frames && data.frames[0] ? await makeThumb(data.frames[0].src) : null;
+      saveList((l) => [{ id, name: o.name || "Restored movie", updated: Date.now(), count: (data.frames || []).length, thumb }, ...l]);
+      setMsg(`Restored "${o.name || "your movie"}".`);
+    } catch { setMsg("That file isn't a Framey backup."); }
+  };
 
   if (!list) return <div className="hs"><style>{css}</style></div>;
   if (open) {
     const p = list.find((x) => x.id === open.id);
     return <Studio key={open.id} project={{ ...open, name: (p && p.name) || open.name }} onMeta={onMeta} onBack={() => setOpen(null)} />;
   }
-  return <Projects list={list} onNew={onNew} onOpen={onOpen} onRename={onRename} onDuplicate={onDuplicate} onDelete={onDelete} />;
+  return <Projects list={list} msg={msg} onNew={onNew} onOpen={onOpen} onRename={onRename} onDuplicate={onDuplicate} onDelete={onDelete} onBackup={onBackup} onRestore={onRestore} />;
 }
 
 const css = `
@@ -856,8 +1195,8 @@ const css = `
 .hs .lockb{left:12px;background:var(--ghost);color:#111}
 .hs .warnb{left:12px;background:var(--clay);color:#111}
 .hs .recb{right:12px;background:var(--rec);border:0;color:#fff}
-.hs .rail{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:1}
-.hs .rail button{min-width:58px;min-height:44px;padding:4px 8px;font-size:.78rem;background:#000b;border-color:var(--clay);color:var(--clay)}
+.hs .rail{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:1}
+.hs .rail button{min-width:58px;min-height:40px;padding:4px 8px;font-size:.78rem;background:#000b;border-color:var(--clay);color:var(--clay)}
 .hs .rail button[aria-pressed=true]{background:var(--ghost);border-color:var(--ghost);color:#111}
 .hs .toast{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;margin:0;padding:8px 12px;border-radius:12px;background:#000d;border:2px solid var(--clay);font-size:.82rem;text-align:center}
 .hs .toast:empty{display:none}
@@ -925,6 +1264,17 @@ const css = `
 .hs .pacts{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 .hs .pacts button{min-height:34px;padding:4px 8px;font-size:.75rem;border-radius:9px;border-color:var(--clay);color:var(--clay)}
 .hs .pacts button.danger{background:var(--rec);border-color:var(--rec);color:#fff}
+.hs .th em{position:absolute;right:2px;top:2px;padding:0 4px;border-radius:5px;background:#fff;color:#111;font-size:.6rem;font-style:normal;font-weight:800}
+.hs .holdn{align-self:center;flex:0 0 auto;font-weight:800;color:#fff;min-width:2.2em;text-align:center}
+.hs .sh{display:block;margin-top:6px;font-size:.85rem;color:var(--clay)}
+.hs .bgthumb{width:44px;height:44px;object-fit:cover;border-radius:8px;border:2px solid var(--clay)}
+.hs .ttext{font:inherit;font-size:1rem;width:100%;background:#1C1C1E;color:var(--ink);border:2px solid var(--clay);border-radius:12px;padding:10px;resize:none}
+.hs .drawcv{touch-action:none;cursor:crosshair}
+.hs .hbtns{display:flex;gap:8px;align-items:center}
+.hs .tipcard{grid-column:1/-1;display:flex;gap:10px;align-items:center;justify-content:space-between;margin:0;padding:12px;border-radius:14px;background:#1C1C1E;border:2px solid var(--clay);font-size:.88rem}
+.hs .tipcard p{margin:0}.hs .tipcard b{color:var(--clay)}
+.hs button.swatch{width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;border:3px solid #3A3A3C}
+.hs button.swatch[aria-pressed=true]{border-color:#fff;box-shadow:0 0 0 2px var(--clay)}
 @media (prefers-reduced-motion:reduce){.hs .shutter i,.hs .prog i{transition:none}.hs .flash{animation-duration:.01s}.hs .count .ring{animation:none}}
 `;
 
