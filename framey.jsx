@@ -227,7 +227,7 @@ function Projects({ list, onNew, onOpen, onRename, onDuplicate, onDelete }) {
             ) : (
               <div className="pname">{p.name}</div>
             )}
-            <div className="sub">{p.count || 0} frames</div>
+            <div className="sub">{p.count || 0} {p.count === 1 ? "frame" : "frames"}</div>
             {confirm === p.id ? (
               <div className="pacts">
                 <span className="sub">Delete this movie?</span>
@@ -590,7 +590,7 @@ function Studio({ project, onBack, onMeta }) {
           <button className="pill" onClick={onBack} aria-label="Back to your movies">Movies</button>
           <div className="titles">
             <h1>{project.name}</h1>
-            <span className="sub">{frames.length} frames, {(sequence(frames.length, pingpong).length / fps).toFixed(1)} s</span>
+            <span className="sub">{frames.length} {frames.length === 1 ? "frame" : "frames"}, {(sequence(frames.length, pingpong).length / fps).toFixed(1)} s</span>
           </div>
         </div>
         <button className="pill go" onClick={createVideo} disabled={!frames.length || making !== null}>Create video</button>
@@ -833,7 +833,7 @@ const css = `
 .hs .count .ring{width:min(56%,240px);aspect-ratio:1;border-radius:50%;border:10px solid var(--clay);display:flex;align-items:center;justify-content:center;background:#111c;animation:hspulse 1s ease-out}
 .hs .count span{font-size:clamp(4rem,22cqw,9rem);font-weight:800;color:var(--clay);line-height:1}
 .hs .count p{margin:0;padding:6px 12px;border-radius:999px;background:#000c;font-size:.85rem;color:var(--ink)}
-@keyframes hspulse{from{transform:scale(1.15);opacity:.4}to{transform:scale(1);opacity:1}}
+@keyframes hspulse{from{transform:scale(1.12)}to{transform:scale(1)}}
 .hs .timerb{right:12px;background:#000c;color:var(--clay);border:2px solid var(--clay)}
 .hs .flash{position:absolute;inset:0;z-index:3;background:#fff;pointer-events:none;animation:hsflash .3s ease-out forwards}
 @keyframes hsflash{from{opacity:.75}to{opacity:0}}
