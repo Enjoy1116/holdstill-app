@@ -24,7 +24,7 @@ const{useState,useRef,useEffect,useMemo}=React;let W=800,H=1200;const RATIOS={ta
 .hs .view{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;container-type:size;padding:6px 4px 0}
 .hs .stage{position:relative;overflow:hidden;border-radius:20px;background:#0B0B0B;border:2px solid var(--clay);max-height:100%}
 .hs .stage>video,.hs .stage>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.hs .stage>img.ghost{pointer-events:none;filter:grayscale(1) sepia(1) saturate(6) hue-rotate(185deg) brightness(1.05)}
+.hs .stage>img.ghost{pointer-events:none}
 .hs .grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(#fff4 1px,transparent 1px),linear-gradient(90deg,#fff4 1px,transparent 1px);background-size:33.333% 33.333%}
 .hs .ask{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center;background:#0B0B0B}
 .hs .ask p{margin:0;max-width:30ch}
