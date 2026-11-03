@@ -659,7 +659,7 @@ function Studio({ project, onBack, onMeta }) {
         <div className="ctrl">
           <button className="tool" onClick={() => pick.current.click()}>Import</button>
           <button className="tool" onClick={undo} disabled={!past.length}>Undo</button>
-          <button className="shutter" onClick={shoot} disabled={playing} aria-label={count !== null ? "Stop timer" : "Take frame"}><i>{count !== null ? count : null}</i></button>
+          <button className={count !== null ? "shutter counting" : "shutter"} onClick={shoot} disabled={playing} aria-label={count !== null ? "Stop timer" : "Take frame"}><i>{count !== null ? count : null}</i></button>
           <button className="tool" onClick={openPreview} disabled={!frames.length}>Preview</button>
           <button className="tool" aria-pressed={sheet} onClick={() => setSheet(!sheet)}>Settings</button>
         </div>
@@ -841,7 +841,7 @@ const css = `
 .hs .count span{font-size:clamp(6rem,34cqw,13rem);font-weight:800;color:#fff;line-height:1;text-shadow:0 0 3px #000,0 4px 18px #000b}
 .hs .count p{margin:0;padding:6px 12px;border-radius:14px;background:#000c;font-size:.82rem;color:var(--ink);max-width:calc(100% - 130px)}
 @keyframes hspulse{from{transform:scale(1.12)}to{transform:scale(1)}}
-.hs .timerb{right:12px;background:#000c;color:var(--clay);border:2px solid var(--clay)}
+.hs .timerb{right:12px;background:#000c;color:#fff;border:2px solid #fff}
 .hs .flash{position:absolute;inset:0;z-index:3;background:#fff;pointer-events:none;animation:hsflash .3s ease-out forwards}
 @keyframes hsflash{from{opacity:.75}to{opacity:0}}
 .hs .dock{display:flex;flex-direction:column;gap:8px;padding:6px 12px max(10px,env(safe-area-inset-bottom))}
@@ -859,6 +859,8 @@ const css = `
 .hs button.shutter{flex:0 0 76px;width:76px;height:76px;padding:4px;border-radius:50%;background:transparent;border:4px solid var(--clay)}
 .hs .shutter i{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;background:var(--clay);box-shadow:inset 0 0 0 4px #111;transition:transform .08s;font-size:1.8rem;font-weight:800;font-style:normal;color:#111}
 .hs .shutter:active:not(:disabled) i{transform:scale(.88)}
+.hs button.shutter.counting{border-color:#fff}
+.hs .shutter.counting i{background:#111;color:#fff;box-shadow:none}
 .hs .sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;max-height:80dvh;overflow:auto;display:grid;gap:12px;padding:10px 16px max(16px,env(safe-area-inset-bottom));background:var(--panel);border-radius:22px 22px 0 0;border-top:2px solid var(--clay);box-shadow:0 -24px 48px #000a}
 .hs .grab{width:40px;height:4px;border-radius:2px;background:var(--clay);margin:0 auto}
 .hs .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
