@@ -344,7 +344,7 @@ function Studio({ project, onBack, onMeta }) {
   const [preview, setPreview] = useState(false);
   const [making, setMaking] = useState(null);
   const [video, setVideo] = useState(null);
-  const vid = useRef(), cvs = useRef(), aud = useRef(), pick = useRef(), recorder = useRef(), viewRef = useRef();
+  const vid = useRef(), cvs = useRef(), aud = useRef(), pick = useRef(), recorder = useRef(), viewRef = useRef(), stripRef = useRef(), ignoreScroll = useRef(0), scrubRaf = useRef(0), tipShown = useRef(false);
   const pos = useRef(0), dragFrom = useRef(null), live = useRef({}), lockRef = useRef(null), countT = useRef(null), beepCtx = useRef(null);
   const voiceUrl = useMemo(() => (voice ? URL.createObjectURL(voice) : null), [voice]);
   [W, H] = ratio === "fit" ? dims : RATIOS[ratio];
@@ -405,13 +405,35 @@ function Studio({ project, onBack, onMeta }) {
       setMsg(frames.length ? "Locked to your first frame. Small bumps and tilts are corrected." : "Locked. New frames will line up with this view.");
     } catch { setMsg("Lock couldn't start. Try again with the camera on."); }
   };
-  const move = (i, j) => { if (j < 0 || j >= frames.length) return; const n = [...frames]; n.splice(j, 0, n.splice(i, 1)[0]); edit(n); setSel(j); };
+  const move = (i, j) => { if (j < 0 || j >= frames.length) return; const n = [...frames]; n.splice(j, 0, n.splice(i, 1)[0]); edit(n); setSel(j); setTimeout(() => centerThumb(j), 0); };
   const dup = () => { const f = { ...frames[sel], id: uid() }; edit([...frames.slice(0, sel + 1), f, ...frames.slice(sel + 1)]); setSel(sel + 1); };
   const del = () => { edit(frames.filter((_, i) => i !== sel)); setSel(null); };
   const stopPlay = () => { if (recorder.current && recorder.current.state === "recording") recorder.current.stop(); setPlaying(false); };
   const openPreview = () => { if (!frames.length) { setMsg("Take a few frames first."); return; } stopPlay(); setSel(null); setPreview(true); };
   live.current = { snap, shoot, del, undo, openPreview, sel, frames, playing, timer, timerRepeat };
   useEffect(() => { if (preview || playing) stopCount(); }, [preview, playing]);
+  // Flipbook: swiping the timeline shows the frame under the middle line on the big screen
+  const onStripScroll = () => {
+    if (Date.now() < ignoreScroll.current || playing) return;
+    cancelAnimationFrame(scrubRaf.current);
+    scrubRaf.current = requestAnimationFrame(() => {
+      const el = stripRef.current; if (!el) return;
+      const mid = el.scrollLeft + el.clientWidth / 2;
+      let best = -1, bd = Infinity;
+      el.querySelectorAll(".th").forEach((b, i) => { const dd = Math.abs(b.offsetLeft + b.offsetWidth / 2 - mid); if (dd < bd) { bd = dd; best = i; } });
+      if (best >= 0) setSel((s) => (s === best ? s : best));
+    });
+  };
+  const centerThumb = (i, smooth = true) => {
+    const el = stripRef.current; if (!el) return;
+    const b = el.querySelectorAll(".th")[i]; if (!b) return;
+    ignoreScroll.current = Date.now() + (smooth ? 600 : 100);
+    el.scrollTo({ left: b.offsetLeft + b.offsetWidth / 2 - el.clientWidth / 2, behavior: smooth ? "smooth" : "auto" });
+  };
+  useEffect(() => {
+    if (sel === null && stripRef.current) { ignoreScroll.current = Date.now() + 600; stripRef.current.scrollTo({ left: stripRef.current.scrollWidth, behavior: "smooth" }); }
+    if (frames.length === 2 && !tipShown.current) { tipShown.current = true; setMsg("Tip: swipe the frames at the bottom to flip through them like a video."); }
+  }, [frames.length]);
 
   const importFiles = async (files) => {
     const c = cvs.current; c.width = W; c.height = H;
@@ -608,6 +630,7 @@ function Studio({ project, onBack, onMeta }) {
           {ghostFrames.map((f, i) => <img key={f.id} className="ghost" src={f.src} alt="" style={{ opacity: ghostOp / (i + 1) }} />)}
           {shown && <img src={shown.src} alt={`Frame ${cur + 1}`} />}
           {grid && <div className="grid" />}
+          {sel !== null && !playing && <span className="badge frameb">Frame {sel + 1} of {frames.length}</span>}
           {!camOn && !shown && (
             <div className="ask">
               <p>{camErr || "Framey needs your camera to take frames. Tap Allow camera, then choose Allow in the browser prompt."}</p>
@@ -638,23 +661,25 @@ function Studio({ project, onBack, onMeta }) {
       <footer className="dock">
         {sel !== null && (
           <div className="acts">
+            <button className="pill go" onClick={() => setSel(null)}>Camera</button>
             <button className="pill" onClick={() => move(sel, sel - 1)} disabled={sel === 0}>Earlier</button>
             <button className="pill" onClick={() => move(sel, sel + 1)} disabled={sel === frames.length - 1}>Later</button>
             <button className="pill" onClick={dup}>Hold</button>
             <button className="pill" onClick={del}>Delete</button>
-            <button className="pill" onClick={() => setSel(null)}>Camera</button>
           </div>
         )}
-        <div className="strip" aria-label="Timeline">
+        <div className={frames.length ? "stripwrap has" : "stripwrap"}>
+        <div className="strip" aria-label="Timeline. Swipe to flip through frames" ref={stripRef} onScroll={onStripScroll}>
           {frames.map((f, i) => (
             <button key={f.id} className="th" draggable style={{ aspectRatio: `${W} / ${H}` }} aria-current={cur === i ? "true" : undefined}
-              onClick={() => { setPlaying(false); setSel(i); }}
+              onClick={() => { setPlaying(false); setSel(i); centerThumb(i); }}
               onDragStart={() => (dragFrom.current = i)} onDragOver={(e) => e.preventDefault()}
               onDrop={() => { if (dragFrom.current !== null && dragFrom.current !== i) move(dragFrom.current, i); dragFrom.current = null; }}>
               <img src={f.src} alt={`Frame ${i + 1}`} draggable={false} /><b>{i + 1}</b>
             </button>
           ))}
           {!frames.length && <p className="sub">Your frames appear here. Press Space to shoot.</p>}
+        </div>
         </div>
         <div className="ctrl">
           <button className="tool" onClick={() => pick.current.click()}>Import</button>
@@ -846,8 +871,15 @@ const css = `
 @keyframes hsflash{from{opacity:.75}to{opacity:0}}
 .hs .dock{display:flex;flex-direction:column;gap:8px;padding:6px 12px max(10px,env(safe-area-inset-bottom))}
 .hs .acts{display:flex;gap:6px;overflow-x:auto}
-.hs .acts button.pill{border-color:var(--clay);color:var(--clay)}
-.hs .strip{display:flex;gap:6px;overflow-x:auto;min-height:58px;align-items:center;scrollbar-width:none}
+.hs .acts button.pill:not(.go){border-color:var(--clay);color:var(--clay)}
+.hs .acts button{flex:0 0 auto}
+.hs .strip{position:relative;display:flex;gap:6px;overflow-x:auto;min-height:62px;align-items:center;scrollbar-width:none;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.hs .strip::-webkit-scrollbar{display:none}
+.hs .stripwrap{position:relative}
+.hs .stripwrap.has .strip{padding-inline:calc(50% - 20px)}
+.hs .stripwrap.has::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;border-radius:2px;background:#fff;box-shadow:0 0 0 1px #000;pointer-events:none}
+.hs button.th{scroll-snap-align:center}
+.hs .frameb{left:50%;transform:translateX(-50%);background:#000c;color:#fff;border:2px solid #fff}
 .hs button.th{position:relative;flex:0 0 auto;height:56px;width:auto;padding:0;overflow:hidden;border-radius:8px}
 .hs .th img{display:block;width:100%;height:100%;object-fit:cover}
 .hs .th b{position:absolute;left:3px;bottom:2px;padding:0 5px;border-radius:5px;background:var(--clay);color:#111;font-size:.65rem}
