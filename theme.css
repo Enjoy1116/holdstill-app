@@ -1,4 +1,4 @@
-/* Holdstill color theme.
+/* Framey color theme.
    1. Neutral grays (no color tint) so the camera picture is the brightest, truest thing on screen.
    2. Colorblind-safe accents from the IBM palette: orange = shoot/export, blue = active tools and ghost frames.
    3. Red is used only for recording. */
@@ -26,3 +26,14 @@ html body .hs .grab{background:var(--clay)}
 html body .hs .sheet{border-top:2px solid var(--clay)}
 html body .hs .shutter{border-color:var(--clay)}
 html body .hs .shutter i{background:var(--clay);box-shadow:inset 0 0 0 4px #111111}
+/* Even more orange */
+html body .hs .top{border-bottom:2px solid var(--clay)}
+html body .hs .top .sub{color:var(--clay)}
+html body .hs button.go:disabled{opacity:.55}
+html body .hs .rail button:not([aria-pressed=true]){border-color:var(--clay);color:var(--clay)}
+html body .hs .acts button.pill{border-color:var(--clay);color:var(--clay)}
+html body .hs .sheet button:not([aria-pressed=true]):not(.go):not(:disabled),html body .hs .sheet select{border-color:var(--clay);color:var(--clay)}
+html body .hs .field{color:var(--ink)}
+html body .hs .toast:not(:empty){border:2px solid var(--clay)}
+html body .hs .ask p{color:var(--ink)}
+html body .hs .ask p::before{content:"";display:block;width:56px;height:6px;border-radius:3px;background:var(--clay);margin:0 auto 14px}
