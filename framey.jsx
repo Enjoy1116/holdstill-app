@@ -344,7 +344,7 @@ function Studio({ project, onBack, onMeta }) {
   const [making, setMaking] = useState(null);
   const [video, setVideo] = useState(null);
   const vid = useRef(), cvs = useRef(), aud = useRef(), pick = useRef(), recorder = useRef(), viewRef = useRef();
-  const pos = useRef(0), dragFrom = useRef(null), live = useRef({}), lockRef = useRef(null), countT = useRef(null);
+  const pos = useRef(0), dragFrom = useRef(null), live = useRef({}), lockRef = useRef(null), countT = useRef(null), beepCtx = useRef(null);
   const voiceUrl = useMemo(() => (voice ? URL.createObjectURL(voice) : null), [voice]);
   [W, H] = ratio === "fit" ? dims : RATIOS[ratio];
 
@@ -365,13 +365,22 @@ function Studio({ project, onBack, onMeta }) {
     edit([...frames, { id: uid(), src: c.toDataURL("image/jpeg", 0.85) }]);
     setSel(null); setFlash((n) => n + 1);
   };
+  const beep = (f, ms = 120) => {
+    try {
+      const ac = beepCtx.current || (beepCtx.current = new (window.AudioContext || window.webkitAudioContext)());
+      if (ac.state === "suspended") ac.resume();
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = f; g.gain.value = 0.15;
+      o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + ms / 1000);
+    } catch {}
+  };
   const shoot = () => {
     if (count !== null) { clearInterval(countT.current); setCount(null); return; }
     if (!timer) { snap(); return; }
-    let n = timer; setCount(n);
+    let n = timer; setCount(n); beep(880);
     countT.current = setInterval(() => {
       n -= 1;
-      if (n <= 0) { clearInterval(countT.current); setCount(null); live.current.snap(); } else setCount(n);
+      if (n <= 0) { clearInterval(countT.current); setCount(null); beep(1320, 250); live.current.snap(); } else { setCount(n); beep(880); }
     }, 1000);
   };
   useEffect(() => () => clearInterval(countT.current), []);
@@ -601,7 +610,13 @@ function Studio({ project, onBack, onMeta }) {
           )}
           {lock && camOn && (lockOk ? <span className="badge lockb">Locked</span> : <span className="badge warnb">Move back to lock</span>)}
           {rec && <button className="badge recb" onClick={voiceOver}>Recording. Tap to stop</button>}
-          {count !== null && <div className="count" aria-live="assertive">{count}</div>}
+          {count !== null && (
+            <div className="count" aria-live="assertive">
+              <div className="ring" key={count}><span>{count}</span></div>
+              <p>Get ready. Tap the shutter to cancel.</p>
+            </div>
+          )}
+          {timer > 0 && count === null && !rec && <span className="badge timerb">Timer {timer}s</span>}
           {flash > 0 && <div className="flash" key={flash} />}
           <div className="rail">
             <button aria-pressed={lock} onClick={toggleLock}>Lock</button>
@@ -638,7 +653,7 @@ function Studio({ project, onBack, onMeta }) {
         <div className="ctrl">
           <button className="tool" onClick={() => pick.current.click()}>Import</button>
           <button className="tool" onClick={undo} disabled={!past.length}>Undo</button>
-          <button className="shutter" onClick={shoot} disabled={playing} aria-label={count !== null ? "Cancel timer" : "Take frame"}><i /></button>
+          <button className="shutter" onClick={shoot} disabled={playing} aria-label={count !== null ? "Cancel timer" : "Take frame"}><i>{count !== null ? count : null}</i></button>
           <button className="tool" onClick={openPreview} disabled={!frames.length}>Preview</button>
           <button className="tool" aria-pressed={sheet} onClick={() => setSheet(!sheet)}>Settings</button>
         </div>
@@ -814,7 +829,12 @@ const css = `
 .hs .rail button[aria-pressed=true]{background:var(--ghost);border-color:var(--ghost);color:#111}
 .hs .toast{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;margin:0;padding:8px 12px;border-radius:12px;background:#000d;border:2px solid var(--clay);font-size:.82rem;text-align:center}
 .hs .toast:empty{display:none}
-.hs .count{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;font-size:9rem;font-weight:800;color:var(--clay);text-shadow:0 4px 24px #000;pointer-events:none}
+.hs .count{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0009;pointer-events:none;text-align:center}
+.hs .count .ring{width:min(56%,240px);aspect-ratio:1;border-radius:50%;border:10px solid var(--clay);display:flex;align-items:center;justify-content:center;background:#111c;animation:hspulse 1s ease-out}
+.hs .count span{font-size:clamp(4rem,22cqw,9rem);font-weight:800;color:var(--clay);line-height:1}
+.hs .count p{margin:0;padding:6px 12px;border-radius:999px;background:#000c;font-size:.85rem;color:var(--ink)}
+@keyframes hspulse{from{transform:scale(1.15);opacity:.4}to{transform:scale(1);opacity:1}}
+.hs .timerb{right:12px;background:#000c;color:var(--clay);border:2px solid var(--clay)}
 .hs .flash{position:absolute;inset:0;z-index:3;background:#fff;pointer-events:none;animation:hsflash .3s ease-out forwards}
 @keyframes hsflash{from{opacity:.75}to{opacity:0}}
 .hs .dock{display:flex;flex-direction:column;gap:8px;padding:6px 12px max(10px,env(safe-area-inset-bottom))}
@@ -830,7 +850,7 @@ const css = `
 .hs button.tool:disabled{border-color:var(--line);color:var(--ink)}
 .hs button.tool[aria-pressed=true]{color:#111}
 .hs button.shutter{flex:0 0 76px;width:76px;height:76px;padding:4px;border-radius:50%;background:transparent;border:4px solid var(--clay)}
-.hs .shutter i{display:block;width:100%;height:100%;border-radius:50%;background:var(--clay);box-shadow:inset 0 0 0 4px #111;transition:transform .08s}
+.hs .shutter i{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;background:var(--clay);box-shadow:inset 0 0 0 4px #111;transition:transform .08s;font-size:1.8rem;font-weight:800;font-style:normal;color:#111}
 .hs .shutter:active:not(:disabled) i{transform:scale(.88)}
 .hs .sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;max-height:80dvh;overflow:auto;display:grid;gap:12px;padding:10px 16px max(16px,env(safe-area-inset-bottom));background:var(--panel);border-radius:22px 22px 0 0;border-top:2px solid var(--clay);box-shadow:0 -24px 48px #000a}
 .hs .grab{width:40px;height:4px;border-radius:2px;background:var(--clay);margin:0 auto}
@@ -864,7 +884,7 @@ const css = `
 .hs .pacts{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 .hs .pacts button{min-height:34px;padding:4px 8px;font-size:.75rem;border-radius:9px;border-color:var(--clay);color:var(--clay)}
 .hs .pacts button.danger{background:var(--rec);border-color:var(--rec);color:#fff}
-@media (prefers-reduced-motion:reduce){.hs .shutter i,.hs .prog i{transition:none}.hs .flash{animation-duration:.01s}}
+@media (prefers-reduced-motion:reduce){.hs .shutter i,.hs .prog i{transition:none}.hs .flash{animation-duration:.01s}.hs .count .ring{animation:none}}
 `;
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
