@@ -307,12 +307,32 @@ async function renderVideo({ frames, fps, voice, vol, music, musicVol, pingpong,
   return { blob: new Blob(out, { type }), ext: type.includes("mp4") ? "mp4" : "webm" };
 }
 
+// ================= Tutorial video =================
+function Tutorial({ onClose }) {
+  const [err, setErr] = useState(false);
+  return (
+    <div className="over" role="dialog" aria-label="How to make a stop-motion movie">
+      <div className="bar">
+        <button className="pill" onClick={onClose}>Back</button>
+        <strong className="otitle">Tutorial</strong>
+        <span className="sub">1 min</span>
+      </div>
+      <div className="pv">
+        {err ? <p className="sub">The tutorial needs the internet the first time. Connect and try again.</p>
+          : <video className="tutv" src="tutorial.mp4" poster="tutorial.jpg" controls autoPlay playsInline onError={() => setErr(true)} />}
+      </div>
+      <button className="pill go" onClick={onClose}>I'm ready, let's make a movie</button>
+    </div>
+  );
+}
+
 // ================= Movies screen =================
 function Projects({ list, msg, onNew, onOpen, onRename, onDuplicate, onDelete, onBackup, onRestore }) {
   const [editing, setEditing] = useState(null);
   const [name, setName] = useState("");
   const [confirm, setConfirm] = useState(null);
   const restore = useRef();
+  const [tut, setTut] = useState(false);
   const standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone;
   const [tip, setTip] = useState(() => { try { return !standalone && localStorage.getItem("framey-tip") !== "no"; } catch { return !standalone; } });
   const hideTip = () => { setTip(false); try { localStorage.setItem("framey-tip", "no"); } catch {} };
@@ -328,6 +348,11 @@ function Projects({ list, msg, onNew, onOpen, onRename, onDuplicate, onDelete, o
         </div>
       </header>
       <main className="plist">
+        <button className="tutcard" onClick={() => setTut(true)}>
+          <img src="tutorial.jpg" alt="" />
+          <span><b>Tutorial</b>How to make a stop-motion movie · 1 min</span>
+          <i aria-hidden="true">▶</i>
+        </button>
         {tip && (
           <div className="tipcard">
             <p><b>Keep your movies safe.</b> Add Framey to your home screen: tap Share in Safari, then Add to Home Screen. It opens full screen and works offline.</p>
@@ -371,6 +396,7 @@ function Projects({ list, msg, onNew, onOpen, onRename, onDuplicate, onDelete, o
           </div>
         ))}
       </main>
+      {tut && <Tutorial onClose={() => setTut(false)} />}
     </div>
   );
 }
@@ -581,6 +607,7 @@ function Studio({ project, onBack, onMeta }) {
   const [peek, setPeek] = useState(null);
   const [drawing, setDrawing] = useState(false);
   const [titling, setTitling] = useState(false);
+  const [tut, setTut] = useState(false);
   const [msg, setMsg] = useState("");
   const [preview, setPreview] = useState(false);
   const [making, setMaking] = useState(null);
@@ -1036,6 +1063,7 @@ function Studio({ project, onBack, onMeta }) {
           <p className="sub">Film in front of something bright green, like green paper. In Preview and your video, the green is swapped for your background picture.</p>
 
           <p className="sub">Repeat timer keeps counting down and taking photos until you tap the shutter. Fix flicker evens out brightness jumps. Ping-pong plays forward, then backward. Play 6 replays your last 6 frames so you can check the motion. Tap a frame to hold it longer, draw on it, or copy it. Space or Enter takes a frame, P opens Preview, Ctrl+Z undoes.</p>
+          <button className="pill" onClick={() => { setSheet(false); setTut(true); }}>Watch the tutorial</button>
           <button className="pill go" onClick={() => setSheet(false)}>Done</button>
         </div>
       )}
@@ -1058,6 +1086,7 @@ function Studio({ project, onBack, onMeta }) {
         <Drawer src={frames[sel].src} onClose={() => setDrawing(false)}
           onSave={(src) => { edit(frames.map((f, i) => (i === sel ? { ...f, src } : f))); setDrawing(false); setMsg("Drawing saved on this frame."); }} />
       )}
+      {tut && <Tutorial onClose={() => setTut(false)} />}
       {titling && <TitleMaker fps={fps} hasSel={sel !== null} onClose={() => setTitling(false)} onAdd={addTitle} />}
 
       {video && (
@@ -1254,6 +1283,11 @@ const css = `
 .hs .prog i{display:block;height:100%;background:var(--clay);transition:width .2s}
 .hs .center-text{text-align:center}
 .hs .plist{flex:1;overflow:auto;padding:14px 12px max(14px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;align-content:start}
+.hs .tutcard{grid-column:1/-1;display:flex;align-items:center;gap:12px;width:100%;padding:10px;border-radius:16px;background:var(--clay);border:0;color:#111;text-align:left;font:inherit;cursor:pointer}
+.hs .tutcard img{width:54px;height:96px;object-fit:cover;border-radius:10px;flex:0 0 auto;background:#111}
+.hs .tutcard span{flex:1;display:grid;gap:2px;font-size:.95rem;font-weight:600}.hs .tutcard b{font-size:1.2rem;font-weight:800}
+.hs .tutcard i{font-style:normal;width:44px;height:44px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-size:1.1rem;flex:0 0 auto}
+.hs .over video.tutv{width:min(100cqw, 9 / 16 * 100cqh);aspect-ratio:9/16;height:auto}
 .hs .empty{grid-column:1/-1;display:grid;justify-items:center;gap:14px;text-align:center;padding:48px 12px}
 .hs .empty p{margin:0;max-width:28ch;font-size:1.05rem}
 .hs .pcard{display:flex;flex-direction:column;gap:6px;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px}
