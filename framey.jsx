@@ -334,6 +334,7 @@ function Studio({ project, onBack, onMeta }) {
   const [lapse, setLapse] = useState(0);
   const [clap, setClap] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [timerRepeat, setTimerRepeat] = useState(true);
   const [count, setCount] = useState(null);
   const [flash, setFlash] = useState(0);
   const [rec, setRec] = useState(false);
@@ -374,13 +375,17 @@ function Studio({ project, onBack, onMeta }) {
       o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + ms / 1000);
     } catch {}
   };
+  const stopCount = () => { clearInterval(countT.current); countT.current = null; setCount(null); };
   const shoot = () => {
-    if (count !== null) { clearInterval(countT.current); setCount(null); return; }
+    if (count !== null) { stopCount(); return; }
     if (!timer) { snap(); return; }
     let n = timer; setCount(n); beep(880);
     countT.current = setInterval(() => {
       n -= 1;
-      if (n <= 0) { clearInterval(countT.current); setCount(null); beep(1320, 250); live.current.snap(); } else { setCount(n); beep(880); }
+      if (n > 0) { setCount(n); beep(880); return; }
+      beep(1320, 250); live.current.snap();
+      if (live.current.timerRepeat && live.current.timer) { n = live.current.timer; setCount(n); }
+      else stopCount();
     }, 1000);
   };
   useEffect(() => () => clearInterval(countT.current), []);
@@ -405,7 +410,8 @@ function Studio({ project, onBack, onMeta }) {
   const del = () => { edit(frames.filter((_, i) => i !== sel)); setSel(null); };
   const stopPlay = () => { if (recorder.current && recorder.current.state === "recording") recorder.current.stop(); setPlaying(false); };
   const openPreview = () => { if (!frames.length) { setMsg("Take a few frames first."); return; } stopPlay(); setSel(null); setPreview(true); };
-  live.current = { snap, shoot, del, undo, openPreview, sel, frames, playing };
+  live.current = { snap, shoot, del, undo, openPreview, sel, frames, playing, timer, timerRepeat };
+  useEffect(() => { if (preview || playing) stopCount(); }, [preview, playing]);
 
   const importFiles = async (files) => {
     const c = cvs.current; c.width = W; c.height = H;
@@ -577,7 +583,7 @@ function Studio({ project, onBack, onMeta }) {
   const shown = cur !== null ? frames[cur] : null;
   const ghostFrames = cur === null ? frames.slice(-ghosts).reverse() : [];
   const fixStyle = fix ? { transform: `translate(${fix.x * 100}%, ${fix.y * (W / H) * 100}%) rotate(${fix.a}deg) scale(${fix.s})` } : undefined;
-  const timerNext = { 0: 3, 3: 10, 10: 0 };
+  const timerNext = { 0: 3, 3: 5, 5: 10, 10: 0 };
 
   return (
     <div className="hs" onClick={(e) => { if (e.detail) { const b = e.target.closest && e.target.closest("button"); if (b) b.blur(); } }}>
@@ -613,10 +619,10 @@ function Studio({ project, onBack, onMeta }) {
           {count !== null && (
             <div className="count" aria-live="assertive">
               <div className="ring" key={count}><span>{count}</span></div>
-              <p>Get ready. Tap the shutter to cancel.</p>
+              <p>{timerRepeat ? "Keeps going after each photo. Tap the shutter to stop." : "Get ready. Tap the shutter to cancel."}</p>
             </div>
           )}
-          {timer > 0 && count === null && !rec && <span className="badge timerb">Timer {timer}s</span>}
+          {timer > 0 && count === null && !rec && <span className="badge timerb">Timer {timer}s{timerRepeat ? ", repeat" : ""}</span>}
           {flash > 0 && <div className="flash" key={flash} />}
           <div className="rail">
             <button aria-pressed={lock} onClick={toggleLock}>Lock</button>
@@ -653,7 +659,7 @@ function Studio({ project, onBack, onMeta }) {
         <div className="ctrl">
           <button className="tool" onClick={() => pick.current.click()}>Import</button>
           <button className="tool" onClick={undo} disabled={!past.length}>Undo</button>
-          <button className="shutter" onClick={shoot} disabled={playing} aria-label={count !== null ? "Cancel timer" : "Take frame"}><i>{count !== null ? count : null}</i></button>
+          <button className="shutter" onClick={shoot} disabled={playing} aria-label={count !== null ? "Stop timer" : "Take frame"}><i>{count !== null ? count : null}</i></button>
           <button className="tool" onClick={openPreview} disabled={!frames.length}>Preview</button>
           <button className="tool" aria-pressed={sheet} onClick={() => setSheet(!sheet)}>Settings</button>
         </div>
@@ -677,8 +683,9 @@ function Studio({ project, onBack, onMeta }) {
           <div className="row">
             <label className="field">Self-timer
               <select value={timer} onChange={(e) => setTimer(+e.target.value)}>
-                <option value="0">Off</option><option value="3">3 seconds</option><option value="10">10 seconds</option>
+                <option value="0">Off</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option>
               </select></label>
+            <button aria-pressed={timerRepeat} onClick={() => setTimerRepeat(!timerRepeat)}>Repeat timer</button>
             <label className="field">Time-lapse
               <select value={lapse} onChange={(e) => setLapse(+e.target.value)}>
                 <option value="0">Off</option>
@@ -695,7 +702,7 @@ function Studio({ project, onBack, onMeta }) {
             )}
             <button onClick={() => { edit([]); setSel(null); }} disabled={!frames.length}>Clear frames</button>
           </div>
-          <p className="sub">Fix flicker evens out brightness jumps between frames in Preview and in your video. Ping-pong plays forward, then backward. Space or Enter takes a frame, P opens Preview, Ctrl+Z undoes. The frame shape can only change while the timeline is empty.</p>
+          <p className="sub">Fix flicker evens out brightness jumps between frames in Preview and in your video. Ping-pong plays forward, then backward. Repeat timer keeps counting down and taking photos until you tap the shutter. Space or Enter takes a frame, P opens Preview, Ctrl+Z undoes. The frame shape can only change while the timeline is empty.</p>
           <button className="pill go" onClick={() => setSheet(false)}>Done</button>
         </div>
       )}
