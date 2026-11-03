@@ -836,10 +836,10 @@ const css = `
 .hs .rail button[aria-pressed=true]{background:var(--ghost);border-color:var(--ghost);color:#111}
 .hs .toast{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;margin:0;padding:8px 12px;border-radius:12px;background:#000d;border:2px solid var(--clay);font-size:.82rem;text-align:center}
 .hs .toast:empty{display:none}
-.hs .count{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0009;pointer-events:none;text-align:center}
-.hs .count .ring{width:min(56%,240px);aspect-ratio:1;border-radius:50%;border:10px solid var(--clay);display:flex;align-items:center;justify-content:center;background:#111c;animation:hspulse 1s ease-out}
-.hs .count span{font-size:clamp(4rem,22cqw,9rem);font-weight:800;color:var(--clay);line-height:1}
-.hs .count p{margin:0;padding:6px 12px;border-radius:999px;background:#000c;font-size:.85rem;color:var(--ink)}
+.hs .count{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none;text-align:center}
+.hs .count .ring{display:flex;align-items:center;justify-content:center;animation:hspulse 1s ease-out}
+.hs .count span{font-size:clamp(6rem,34cqw,13rem);font-weight:800;color:#fff;line-height:1;text-shadow:0 0 3px #000,0 4px 18px #000b}
+.hs .count p{margin:0;padding:6px 12px;border-radius:14px;background:#000c;font-size:.82rem;color:var(--ink);max-width:calc(100% - 130px)}
 @keyframes hspulse{from{transform:scale(1.12)}to{transform:scale(1)}}
 .hs .timerb{right:12px;background:#000c;color:var(--clay);border:2px solid var(--clay)}
 .hs .flash{position:absolute;inset:0;z-index:3;background:#fff;pointer-events:none;animation:hsflash .3s ease-out forwards}
