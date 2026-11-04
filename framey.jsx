@@ -265,8 +265,31 @@ async function renderVideo({ frames, fps, voice, vol, music, musicVol, pingpong,
   const seq = buildSeq(frames, pingpong);
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const g = c.getContext("2d", { willReadFrequently: true });
-  renderFrame(g, imgs[seq[0]], seq[0], look, fadeAlpha(0, seq.length, fps, fadeIn, fadeOut));
-  const stream = c.captureStream(fps);
+  // Step 1: do the slow work (flicker fix, green screen) for every photo BEFORE recording,
+  // so each frame can be shown right on time and the movie plays smoothly at the chosen speed.
+  const pics = [];
+  for (let i = 0; i < imgs.length; i++) {
+    const heavy = !!look.bg || (!!look.gains && Math.abs(look.gains[i] - 1) > 0.01);
+    if (heavy) {
+      renderFrame(g, imgs[i], i, look, 0);
+      const b = await new Promise((ok) => c.toBlob(ok, "image/jpeg", 0.92));
+      pics.push(b ? await loadImg(URL.createObjectURL(b)) : imgs[i]);
+    } else pics.push(imgs[i]);
+    onProgress && onProgress(((i + 1) / imgs.length) * 0.3);
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  const draw = (p) => {
+    g.drawImage(pics[seq[p]], 0, 0, W, H);
+    const a = fadeAlpha(p, seq.length, fps, fadeIn, fadeOut);
+    if (a > 0) { g.fillStyle = `rgba(0,0,0,${a})`; g.fillRect(0, 0, W, H); }
+  };
+  draw(0);
+  // Send a video frame exactly when we draw one, where the browser allows it
+  let stream = c.captureStream(0);
+  let vt = stream.getVideoTracks()[0];
+  const manual = !!vt && typeof vt.requestFrame === "function";
+  if (!manual) { stream = c.captureStream(30); vt = stream.getVideoTracks()[0]; }
+  const push = () => { if (manual) { try { vt.requestFrame(); } catch {} } };
   const len = seq.length / fps;
   let ac = null;
   const tracks = [];
@@ -289,18 +312,26 @@ async function renderVideo({ frames, fps, voice, vol, music, musicVol, pingpong,
   mr.ondataavailable = (e) => e.data.size && out.push(e.data);
   const done = new Promise((ok) => (mr.onstop = ok));
   mr.start();
+  await new Promise((r) => setTimeout(r, 120)); // let the recorder get going so the first frame isn't lost
   if (ac) {
-    const t0 = ac.currentTime;
+    const t = ac.currentTime;
     tracks.forEach(({ n, gn, v }) => {
-      n.start(t0);
-      if (fadeOut && len > 1) { gn.gain.setValueAtTime(v, t0 + Math.max(0, len - 0.8)); gn.gain.linearRampToValueAtTime(0, t0 + len); }
+      n.start(t);
+      if (fadeOut && len > 1) { gn.gain.setValueAtTime(v, t + Math.max(0, len - 0.8)); gn.gain.linearRampToValueAtTime(0, t + len); }
     });
   }
-  for (let i = 0; i < seq.length; i++) {
-    renderFrame(g, imgs[seq[i]], seq[i], look, fadeAlpha(i, seq.length, fps, fadeIn, fadeOut));
-    onProgress && onProgress((i + 1) / seq.length);
-    await new Promise((r) => setTimeout(r, 1000 / fps));
+  // Step 2: show each frame on a steady clock (no drift, even if the phone is busy)
+  const t0 = performance.now(), step = 1000 / fps;
+  for (let p = 0; p < seq.length; p++) {
+    const wait = t0 + p * step - performance.now();
+    if (wait > 1) await new Promise((r) => setTimeout(r, wait));
+    draw(p); push();
+    onProgress && onProgress(0.3 + ((p + 1) / seq.length) * 0.7);
   }
+  // hold the last frame for its full beat
+  const rest = t0 + seq.length * step - performance.now();
+  if (rest > 1) await new Promise((r) => setTimeout(r, rest));
+  push();
   tracks.forEach(({ n }) => { try { n.stop(); } catch {} });
   mr.stop(); await done; if (ac) ac.close();
   const type = mr.mimeType || mime || "video/webm";
