@@ -27,7 +27,7 @@ with sync_playwright() as pw:
     for i in range(14):
         p.evaluate("(j)=>{window.__shake=j}", shakes[i]); p.wait_for_timeout(250)
         raws.append(p.evaluate("()=>window.__cam.toDataURL('image/jpeg',0.85)"))
-        p.click(".shutter"); p.wait_for_timeout(250)
+        p.click(".shutter", force=True); p.wait_for_timeout(250)
         if i == 5: p.evaluate("()=>{window.__k++}"); p.wait_for_timeout(3600); shot("a_shoot"); continue
         if i < 13: p.evaluate("()=>{window.__k++}"); p.wait_for_timeout(350)
     p.evaluate("()=>{window.__shake={x:0,y:0,a:0,s:1}}")
@@ -68,7 +68,7 @@ with sync_playwright() as pw:
     p.evaluate("()=>{window.__green=true;window.__k=3;window.__vis=3}")
     p.click('button:has-text("Allow camera")'); p.wait_for_timeout(1500)
     for i in range(5):
-        p.click(".shutter"); p.wait_for_timeout(200); p.evaluate("()=>{window.__k++}"); p.wait_for_timeout(450)
+        p.click(".shutter", force=True); p.wait_for_timeout(200); p.evaluate("()=>{window.__k++}"); p.wait_for_timeout(450)
     p.click('button.tool:has-text("Settings")'); p.wait_for_timeout(400)
     p.set_input_files('input[type=file][accept="image/*"]:not([multiple])', D + "/space.png"); p.wait_for_timeout(1000)
     p.locator('.sheet button:has-text("Done")').click(); p.wait_for_timeout(300)
