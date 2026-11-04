@@ -89,7 +89,7 @@ def race(only=None):
 
     def pos(k):
         t = min(k, N - 1) / (N - 1)
-        return (-320 + 800 * (1 - (1 - t) ** 2)) * S, (-700 + 1260 * t ** 1.4) * S
+        return (-320 + 800 * (1 - (1 - t) ** 2)) * S, (-700 + 1200 * t ** 1.4) * S
 
     def draw(im, k, rnd):
         d = ImageDraw.Draw(im); sq = 22 * S
@@ -98,10 +98,10 @@ def race(only=None):
                 y0 = back - 70 * S + row * sq * 1.15
                 d.rectangle([FIN + col * sq, y0, FIN + (col + 1) * sq, y0 + sq * 1.15], fill=(250, 250, 250) if (row + col) % 2 else (25, 25, 25))
         bx, rx = pos(k); pbx, prx = pos(k - 1) if k else (bx, rx)
-        won = k >= 22
-        r = 46 * S; e = k - 22                     # ball behind the finish line
+        won = k >= N
+        r = 46 * S; e = k - N                     # ball behind the finish line
         hop = (math.sin((e % 4) / 4 * math.pi) * 150 * S) if won and e < 12 else 0
-        _put_ball(im, 880 * S, back - 20 * S, r, hop, 0.78 if won and e % 4 == 0 else 1.0, -1 if not won else 0)
+        _put_ball(im, 905 * S, back - 20 * S, r, hop, 0.78 if won and e % 4 == 0 else 1.0, -1 if not won else 0)
         for x, px, g, c, sc in ((bx, pbx, back, COLORS[1], 0.85), (rx, prx, front, COLORS[0], 1.0)):
             dx = x - px
             if dx > 30 * S:                        # speed lines
