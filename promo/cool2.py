@@ -182,4 +182,75 @@ def rocket(only=None):
     return _run(n, draw, 17, only)
 
 
-SCENES = ["stack", "race", "split", "rocket"]
+
+
+# ---------------------------------------------------------------- 5. zombie apocalypse (kid-friendly)
+ZG, ZD = (110, 186, 74), (78, 140, 52)
+
+def _zombie(im, cx, ground, r, face, sq=1.0, ko=False, arm=0.0, jx=0.0):
+    """A goofy green clay zombie blob: droopy eyelids, zigzag mouth, stubby arms reaching forward."""
+    _shadow(im, cx, ground + 3 * S, r * 0.9, 12 * S, 65)
+    d = ImageDraw.Draw(im); rx, ry = r / math.sqrt(sq), r * sq; cx += jx; cy = ground - ry + 6 * S
+    if not ko:
+        for dy in (-0.05, 0.18):
+            ay = cy + dy * ry + math.sin(arm + dy * 9) * 6 * S; x0 = cx + face * rx * 0.55; x1 = cx + face * (rx * 0.55 + r * 0.95)
+            d.rounded_rectangle([min(x0, x1), ay - 0.13 * r, max(x0, x1), ay + 0.13 * r], 0.13 * r, fill=ZD)
+    d.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=ZG)
+    d.ellipse([cx - rx * 0.7, cy - ry * 0.8, cx + rx * 0.1, cy - ry * 0.1], fill=(140, 208, 104))
+    for sx, sy, sr in ((0.35, 0.25, 0.14), (-0.45, 0.35, 0.1), (0.1, 0.55, 0.08)):
+        d.ellipse([cx + sx * rx - sr * r, cy + sy * ry - sr * r, cx + sx * rx + sr * r, cy + sy * ry + sr * r], fill=ZD)
+    for ex in (-0.3, 0.3):
+        x = cx + ex * rx + face * 0.06 * r; y = cy - 0.2 * ry; er = 0.2 * r
+        if ko:
+            w = max(2, int(0.07 * r)); d.line([x - er, y - er, x + er, y + er], fill=(30, 30, 30), width=w); d.line([x - er, y + er, x + er, y - er], fill=(30, 30, 30), width=w)
+        else:
+            d.ellipse([x - er, y - er, x + er, y + er], fill=(250, 250, 240))
+            d.ellipse([x - 0.4 * er + face * 0.35 * er, y - 0.1 * er, x + 0.4 * er + face * 0.35 * er, y + 0.6 * er], fill=(25, 25, 25))
+            d.chord([x - er - 2, y - er - 2, x + er + 2, y + er + 2], 180, 360, fill=ZG)
+    pts = [(cx - 0.32 * rx + i * 0.128 * rx, cy + 0.32 * ry + (0.07 * r if i % 2 else 0)) for i in range(6)]
+    d.line(pts, fill=(40, 70, 28), width=max(2, int(0.06 * r)))
+
+
+def zombie(only=None):
+    """Blob is bouncing happily when two silly zombies shuffle in. He jumps onto a block tower;
+    they bonk into it, bounce off and fall flat. Victory dance."""
+    n = 42; bw = 104 * S; R = 56 * S; zr = 62 * S; tx = MID; ttop = G - 3 * bw
+    k_jump, k_bonk = 20, 32
+    bx0 = MID + 270 * S
+
+    def zpos(k, side):
+        start = -170 * S if side < 0 else CW * S + 170 * S; stop = tx + side * (bw / 2 + zr * 1.25)
+        if k < 8: return start
+        if k < k_bonk: return start + (stop - start) * min(1, (k - 8) / (k_bonk - 9))
+        e = k - k_bonk
+        return stop + side * [6, 60, 120, 165, 190, 200][min(e, 5)] * S
+
+    def draw(im, k, rnd):
+        _shadow(im, tx, G + 3 * S, bw * 0.65, 14 * S, 70); d = ImageDraw.Draw(im)
+        wob = (rnd.uniform(-6, 6) * S if k_bonk <= k < k_bonk + 3 else 0)
+        for i, c in enumerate([COLORS[1], COLORS[3], COLORS[2]]):
+            x0 = tx - bw / 2 + wob * (i + 1) / 3; yb = G - i * bw
+            d.rounded_rectangle([x0, yb - bw, x0 + bw, yb], 14 * S, fill=_dk(c))
+            d.rounded_rectangle([x0, yb - bw, x0 + bw, yb - 12 * S], 14 * S, fill=c)
+        for side in (-1, 1):
+            x = zpos(k, side); e = k - k_bonk
+            if e < 0: _zombie(im, x, G, zr, -side, sq=1.0 + 0.05 * math.sin(k * 1.3 + side), arm=k * 0.9, jx=rnd.uniform(-2, 2) * S)
+            elif e == 0: _zombie(im, x, G, zr, -side, sq=0.82, arm=k)
+            elif e < 4: _zombie(im, x, G, zr, -side, sq=1.05, arm=k)
+            else: _zombie(im, x, G, zr, -side, sq=0.42, ko=True)
+        if k < 8:
+            ph = (k % 4) / 4; _put_ball(im, bx0, G, R, math.sin(ph * math.pi) * 110 * S, 0.8 if ph == 0 else 1.06, 1)
+        elif k < k_jump:
+            look = -1 if (k // 2) % 2 else 1; _put_ball(im, bx0 + rnd.uniform(-5, 5) * S, G, R, 0, 1.0, look)
+        elif k < k_jump + 6:
+            p = (k - k_jump + 1) / 6; cx = bx0 + (tx - bx0) * p; g = G + (ttop - G) * p
+            _put_ball(im, cx, g, R, math.sin(p * math.pi) * 150 * S, 1.06, -1)
+        elif k < k_bonk + 4:
+            _put_ball(im, tx, ttop, R, 0, 0.78 if k == k_jump + 6 else 1.0, -1 if (k // 3) % 2 else 1)
+        else:
+            e = k - k_bonk - 4; ph = (e % 3) / 3
+            _put_ball(im, tx, ttop, R, math.sin(ph * math.pi) * 55 * S, 0.78 if ph == 0 else 1.08, 0)
+    return _run(n, draw, 23, only)
+
+
+SCENES = ["stack", "race", "split", "rocket", "zombie"]
