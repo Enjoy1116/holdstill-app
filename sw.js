@@ -1,5 +1,5 @@
 // Framey offline support: use the network when it's there, fall back to the saved copy when it isn't.
-const CACHE = "framey-v14";
+const CACHE = "framey-v15";
 const CORE = ["./", "index.html", "app.js?v=14", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "tutorial.jpg",
   "https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"];
