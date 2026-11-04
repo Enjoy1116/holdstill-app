@@ -306,5 +306,312 @@
   ],
   "caption": "Wait… was it all a zombie DANCE PARTY?! 🕺🧟 STICKMAN SURVIVAL — Part 4, the twist. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Should we make Season 2? Comment YES or NO 👇 and follow! #stickman #animation #zombie #story #framey",
   "next": "FOLLOW FOR SEASON 2"
+ },
+ "season2": {
+  "part": 5,
+  "title": "Season 2",
+  "shots": [
+   {
+    "scene": "title",
+    "say": "Season two. The helicopter lands on a new roof.",
+    "key": "roof",
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "The pilot yells: they only dance while the music plays!",
+    "key": "music",
+    "clock": "12:30",
+    "heli": "hover",
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "Down below, the zombies are dancing. For now.",
+    "key": "now",
+    "clock": "12:31",
+    "dance": true,
+    "zombies": 5,
+    "rule": [
+     "RULE #4",
+     "KEEP THE MUSIC ON"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "Then your phone buzzes. Five percent battery.",
+    "key": "battery",
+    "clock": "12:32",
+    "red": false,
+    "screen": [
+     "LOW BATTERY",
+     "5%",
+     "Music will stop soon"
+    ],
+    "sfx": [
+     "buzz"
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "The music skips. Every zombie freezes.",
+    "key": "freezes",
+    "clock": "12:32",
+    "turn": true,
+    "zombies": 5,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Do you find a charger, or find a radio?",
+    "key": "charger radio",
+    "choice": [
+     "FIND A CHARGER",
+     "FIND A RADIO"
+    ]
+   }
+  ],
+  "caption": "SEASON 2 is here 🎶🧟 They only dance while the music plays... and your phone is at 5%. STICKMAN SURVIVAL — Part 5. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Charger (A) or radio (B)? Comment 👇 and follow for Part 6. #stickman #animation #zombie #story #framey"
+ },
+ "radio": {
+  "part": 6,
+  "title": "The Radio",
+  "shots": [
+   {
+    "scene": "title",
+    "say": "If you picked B, you went looking for a radio.",
+    "key": "radio",
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "hallway",
+    "say": "The hallway is dark. Something is standing at the end.",
+    "key": "end",
+    "clock": "12:34",
+    "zombie_far": true,
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "A sign says: radio room. You slowly open the door.",
+    "key": "open",
+    "clock": "12:35"
+   },
+   {
+    "scene": "room",
+    "say": "There's an old radio! You turn the dial.",
+    "key": "dial",
+    "clock": "12:36"
+   },
+   {
+    "scene": "room",
+    "say": "Static. Nothing but static.",
+    "key": "static",
+    "clock": "12:36",
+    "scared": true,
+    "shake": true
+   },
+   {
+    "scene": "window",
+    "say": "Outside, the zombies stop dancing, and turn toward you.",
+    "key": "turn",
+    "clock": "12:37",
+    "turn": true,
+    "zombies": 5,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Do you sing really loud, or bang on pots and pans?",
+    "key": "sing pans",
+    "choice": [
+     "SING REALLY LOUD",
+     "BANG POTS AND PANS"
+    ]
+   }
+  ],
+  "caption": "Static... and the music just stopped 📻🧟 STICKMAN SURVIVAL — Part 6. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Sing (A) or bang pots (B)? Comment 👇 and follow for Part 7. #stickman #animation #zombie #story #framey"
+ },
+ "song": {
+  "part": 7,
+  "title": "The Song",
+  "shots": [
+   {
+    "scene": "title",
+    "say": "If you picked A, you started singing.",
+    "key": "singing",
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "You sing as loud as you can. They start dancing again!",
+    "key": "dancing",
+    "clock": "12:38",
+    "dance": true,
+    "zombies": 5
+   },
+   {
+    "scene": "alert",
+    "say": "Then your phone rings. Unknown number.",
+    "key": "rings",
+    "clock": "12:39",
+    "red": false,
+    "screen": [
+     "INCOMING CALL",
+     "Unknown number"
+    ],
+    "sfx": [
+     "buzz"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "A voice says: get to the roof. We are coming back.",
+    "key": "roof",
+    "clock": "12:40",
+    "heli": "arrive",
+    "you": "wave",
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "stairs",
+    "say": "Twenty-one floors. Keep singing. Don't stop!",
+    "key": "stop",
+    "clock": "12:41",
+    "floors": [
+     14,
+     21
+    ],
+    "rule": [
+     "RULE #5",
+     "NEVER STOP SINGING"
+    ],
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "stairs",
+    "say": "On floor eighteen, you run out of breath.",
+    "key": "breath",
+    "clock": "12:42",
+    "floors": [
+     18,
+     18
+    ],
+    "below": true,
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Do you keep running, or hum really quietly?",
+    "key": "running quietly",
+    "choice": [
+     "KEEP RUNNING",
+     "HUM QUIETLY"
+    ]
+   }
+  ],
+  "caption": "Keep singing or they stop dancing 🎤🧟 21 floors to go... STICKMAN SURVIVAL — Part 7. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Keep running (A) or hum quietly (B)? Comment 👇 and follow for Part 8. #stickman #animation #zombie #story #framey"
+ },
+ "finale2": {
+  "part": 8,
+  "title": "The Rescue",
+  "next": "FOLLOW FOR SEASON 3",
+  "shots": [
+   {
+    "scene": "title",
+    "say": "If you picked A, you kept running.",
+    "key": "running",
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "The roof door. Locked. Again?!",
+    "key": "again",
+    "clock": "12:44",
+    "locked": true,
+    "rattle": true,
+    "sfx": [
+     "bang"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "Then, a knock. From the other side.",
+    "key": "knock",
+    "clock": "12:44",
+    "knock": true,
+    "feet": true,
+    "sfx": [
+     "knock"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "The door swings open. The pilot throws you a rope!",
+    "key": "rope",
+    "clock": "12:45",
+    "heli": "hover",
+    "rope": true,
+    "you": "hang",
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "Below you, every zombie waves goodbye, and keeps dancing.",
+    "key": "goodbye",
+    "clock": "12:46",
+    "dance": true,
+    "zombies": 5
+   },
+   {
+    "scene": "alert",
+    "say": "Your phone buzzes one last time. Season three?",
+    "key": "three",
+    "clock": "12:47",
+    "red": false,
+    "screen": [
+     "NEW MESSAGE",
+     "Season 3?",
+     "Reply YES or NO"
+    ],
+    "sfx": [
+     "buzz"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Should we make season three? Comment yes or no!",
+    "key": "yes no",
+    "choice": [
+     "YES, SEASON 3!",
+     "NO WAY"
+    ]
+   }
+  ],
+  "caption": "You made it out... or did you? 🚁🧟 STICKMAN SURVIVAL — Part 8, the Season 2 finale. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Should we make SEASON 3? Comment YES or NO 👇 and follow! #stickman #animation #zombie #story #framey"
  }
 }
