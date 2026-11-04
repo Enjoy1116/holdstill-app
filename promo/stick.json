@@ -310,29 +310,42 @@
  "season2": {
   "part": 5,
   "title": "Season 2",
+  "hook": "Would you survive this?",
   "shots": [
    {
-    "scene": "title",
-    "say": "Season two. The helicopter lands on a new roof.",
-    "key": "roof",
+    "scene": "window",
+    "say": "You voted yes. So the zombies are back, and they're dancing.",
+    "key": "dancing",
+    "title_overlay": true,
+    "dance": true,
+    "zombies": 5,
+    "chance": 70,
     "sfx": [
      "sting"
     ]
    },
    {
     "scene": "roof",
-    "say": "The pilot yells: they only dance while the music plays!",
-    "key": "music",
+    "say": "The helicopter drops you on a new roof, far from the city.",
+    "key": "roof",
     "clock": "12:30",
     "heli": "hover",
+    "chance": 75,
     "sfx": [
      "heli"
     ]
    },
    {
+    "scene": "roof",
+    "say": "The pilot yells one thing before flying away.",
+    "key": "yells",
+    "clock": "12:30",
+    "you": "scared"
+   },
+   {
     "scene": "window",
-    "say": "Down below, the zombies are dancing. For now.",
-    "key": "now",
+    "say": "They only dance while the music plays!",
+    "key": "music",
     "clock": "12:31",
     "dance": true,
     "zombies": 5,
@@ -342,27 +355,91 @@
     ]
    },
    {
+    "scene": "window",
+    "say": "As long as they dance, they can't chase you.",
+    "key": "chase",
+    "clock": "12:31",
+    "dance": true,
+    "zombies": 5,
+    "chance": 80
+   },
+   {
+    "scene": "room",
+    "say": "You find a room with a speaker playing music.",
+    "key": "speaker",
+    "clock": "12:33"
+   },
+   {
+    "scene": "room",
+    "say": "Your phone is the only thing connected to it.",
+    "key": "phone",
+    "clock": "12:33",
+    "scared": true,
+    "chance": 70
+   },
+   {
     "scene": "alert",
-    "say": "Then your phone buzzes. Five percent battery.",
-    "key": "battery",
-    "clock": "12:32",
+    "say": "Then you see it. Five percent battery.",
+    "key": "five",
+    "clock": "12:34",
     "red": false,
     "screen": [
      "LOW BATTERY",
-     "5%",
-     "Music will stop soon"
+     "5%"
     ],
     "sfx": [
      "buzz"
+    ],
+    "chance": 45
+   },
+   {
+    "scene": "room",
+    "say": "Four percent. Your hands start shaking.",
+    "key": "shaking",
+    "clock": "12:35",
+    "scared": true,
+    "shake": true,
+    "chance": 35
+   },
+   {
+    "scene": "hallway",
+    "say": "You run into the hallway, looking for a charger.",
+    "key": "charger",
+    "clock": "12:36",
+    "sfx": [
+     "steps"
     ]
    },
    {
+    "scene": "hallway",
+    "say": "At the end of the hallway, something is standing still.",
+    "key": "standing",
+    "clock": "12:36",
+    "zombie_far": true,
+    "chance": 30
+   },
+   {
+    "scene": "alert",
+    "say": "One percent. The music begins to fade.",
+    "key": "fade",
+    "clock": "12:37",
+    "screen": [
+     "BATTERY 1%",
+     "Music stopping..."
+    ],
+    "sfx": [
+     "buzz"
+    ],
+    "chance": 15
+   },
+   {
     "scene": "window",
-    "say": "The music skips. Every zombie freezes.",
-    "key": "freezes",
-    "clock": "12:32",
+    "say": "Every zombie stops dancing, and turns around.",
+    "key": "turns",
+    "clock": "12:37",
     "turn": true,
     "zombies": 5,
+    "chance": 10,
     "sfx": [
      "sting"
     ]
@@ -377,60 +454,140 @@
     ]
    }
   ],
-  "caption": "SEASON 2 is here 🎶🧟 They only dance while the music plays... and your phone is at 5%. STICKMAN SURVIVAL — Part 5. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Charger (A) or radio (B)? Comment 👇 and follow for Part 6. #stickman #animation #zombie #story #framey"
+  "caption": "They only dance while the music plays... and your phone is at 1% 🔋🧟 STICKMAN SURVIVAL — Season 2, Part 5. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Charger (A) or radio (B)? Comment 👇 and follow for Part 6. #stickman #animation #zombie #story #framey"
  },
  "radio": {
   "part": 6,
   "title": "The Radio",
+  "hook": "Would you survive this?",
   "shots": [
    {
-    "scene": "title",
-    "say": "If you picked B, you went looking for a radio.",
-    "key": "radio",
+    "scene": "door",
+    "say": "The music is gone. And something is banging on the door.",
+    "key": "banging",
+    "title_overlay": true,
+    "rattle": true,
+    "clock": "12:38",
+    "chance": 10,
+    "sfx": [
+     "bang"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "If you picked A, the charger was broken. Game over.",
+    "key": "broken",
+    "screen": [
+     "GAME OVER",
+     "Charger broken"
+    ],
+    "chance": 0,
     "sfx": [
      "sting"
     ]
    },
    {
     "scene": "hallway",
-    "say": "The hallway is dark. Something is standing at the end.",
-    "key": "end",
-    "clock": "12:34",
-    "zombie_far": true,
+    "say": "If you picked B, you ran for the radio room. Good choice.",
+    "key": "good",
+    "clock": "12:38",
+    "chance": 20,
     "sfx": [
      "steps"
     ]
    },
    {
+    "scene": "hallway",
+    "say": "The thing at the end of the hallway is getting closer.",
+    "key": "closer",
+    "clock": "12:39",
+    "zombie_far": true,
+    "chance": 15
+   },
+   {
     "scene": "door",
-    "say": "A sign says: radio room. You slowly open the door.",
-    "key": "open",
-    "clock": "12:35"
+    "say": "A sign says: radio room. You slam the door behind you.",
+    "key": "slam",
+    "clock": "12:39",
+    "sfx": [
+     "bang"
+    ]
    },
    {
     "scene": "room",
-    "say": "There's an old radio! You turn the dial.",
-    "key": "dial",
-    "clock": "12:36"
+    "say": "There it is. An old radio, covered in dust.",
+    "key": "radio",
+    "clock": "12:40",
+    "chance": 25
    },
    {
     "scene": "room",
-    "say": "Static. Nothing but static.",
+    "say": "You turn the dial. Static.",
     "key": "static",
-    "clock": "12:36",
+    "clock": "12:40"
+   },
+   {
+    "scene": "room",
+    "say": "More static. Nothing works.",
+    "key": "nothing",
+    "clock": "12:40",
     "scared": true,
-    "shake": true
+    "shake": true,
+    "chance": 20
+   },
+   {
+    "scene": "door",
+    "say": "Knock. Knock. Knock.",
+    "key": "knock",
+    "clock": "12:41",
+    "knock": true,
+    "feet": true,
+    "chance": 15,
+    "sfx": [
+     "knock"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "You remember rule number two.",
+    "key": "two",
+    "clock": "12:41",
+    "feet": true,
+    "rule": [
+     "RULE #2",
+     "NEVER OPEN THE DOOR"
+    ]
+   },
+   {
+    "scene": "room",
+    "say": "You turn the dial one last time.",
+    "key": "last",
+    "clock": "12:41",
+    "scared": true
+   },
+   {
+    "scene": "alert",
+    "say": "And music starts playing! Very, very quietly.",
+    "key": "music",
+    "clock": "12:42",
+    "red": false,
+    "screen": [
+     "RADIO FM 101",
+     "Music found!"
+    ],
+    "chance": 40,
+    "sfx": [
+     "ding"
+    ]
    },
    {
     "scene": "window",
-    "say": "Outside, the zombies stop dancing, and turn toward you.",
-    "key": "turn",
-    "clock": "12:37",
+    "say": "But outside, the zombies are still not dancing.",
+    "key": "still",
+    "clock": "12:42",
     "turn": true,
     "zombies": 5,
-    "sfx": [
-     "sting"
-    ]
+    "chance": 30
    },
    {
     "scene": "choice",
@@ -442,33 +599,61 @@
     ]
    }
   ],
-  "caption": "Static... and the music just stopped 📻🧟 STICKMAN SURVIVAL — Part 6. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Sing (A) or bang pots (B)? Comment 👇 and follow for Part 7. #stickman #animation #zombie #story #framey"
+  "caption": "Static... knocking... and only one way to make them dance again 📻🧟 STICKMAN SURVIVAL — Season 2, Part 6. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Sing (A) or bang pots (B)? Comment 👇 and follow for Part 7. #stickman #animation #zombie #story #framey"
  },
  "song": {
   "part": 7,
   "title": "The Song",
+  "hook": "Would you survive this?",
   "shots": [
    {
-    "scene": "title",
-    "say": "If you picked A, you started singing.",
-    "key": "singing",
+    "scene": "window",
+    "say": "You sing so loud, the whole city can hear you.",
+    "key": "loud",
+    "title_overlay": true,
+    "dance": true,
+    "zombies": 5,
+    "clock": "12:42",
+    "chance": 45
+   },
+   {
+    "scene": "alert",
+    "say": "If you picked B, the pots were too loud. They found you.",
+    "key": "found",
+    "screen": [
+     "GAME OVER",
+     "Too loud!"
+    ],
+    "chance": 0,
     "sfx": [
      "sting"
     ]
    },
    {
     "scene": "window",
-    "say": "You sing as loud as you can. They start dancing again!",
+    "say": "But if you picked A, they started dancing again!",
     "key": "dancing",
-    "clock": "12:38",
     "dance": true,
-    "zombies": 5
+    "zombies": 5,
+    "clock": "12:43",
+    "chance": 55
+   },
+   {
+    "scene": "window",
+    "say": "Now there's a new rule.",
+    "key": "rule",
+    "dance": true,
+    "zombies": 5,
+    "rule": [
+     "RULE #5",
+     "NEVER STOP SINGING"
+    ]
    },
    {
     "scene": "alert",
     "say": "Then your phone rings. Unknown number.",
     "key": "rings",
-    "clock": "12:39",
+    "clock": "12:43",
     "red": false,
     "screen": [
      "INCOMING CALL",
@@ -480,49 +665,104 @@
    },
    {
     "scene": "roof",
-    "say": "A voice says: get to the roof. We are coming back.",
+    "say": "It's the pilot. Get to the roof, we're coming back!",
     "key": "roof",
-    "clock": "12:40",
+    "clock": "12:44",
     "heli": "arrive",
     "you": "wave",
+    "chance": 65,
     "sfx": [
      "heli"
     ]
    },
    {
     "scene": "stairs",
-    "say": "Twenty-one floors. Keep singing. Don't stop!",
-    "key": "stop",
-    "clock": "12:41",
+    "say": "Twenty-one floors. You run and sing at the same time.",
+    "key": "sing",
+    "clock": "12:44",
     "floors": [
-     14,
-     21
+     10,
+     14
     ],
-    "rule": [
-     "RULE #5",
-     "NEVER STOP SINGING"
-    ],
+    "chance": 60,
     "sfx": [
      "steps"
     ]
    },
    {
     "scene": "stairs",
-    "say": "On floor eighteen, you run out of breath.",
-    "key": "breath",
-    "clock": "12:42",
+    "say": "Your voice is getting tired.",
+    "key": "tired",
+    "clock": "12:45",
+    "floors": [
+     15,
+     17
+    ],
+    "chance": 50
+   },
+   {
+    "scene": "stairs",
+    "say": "On floor eighteen, you hear footsteps right below you.",
+    "key": "below",
+    "clock": "12:45",
     "floors": [
      18,
      18
     ],
     "below": true,
+    "chance": 35,
     "sfx": [
      "steps"
     ]
    },
    {
+    "scene": "stairs",
+    "say": "You stop singing to catch your breath.",
+    "key": "breath",
+    "clock": "12:46",
+    "floors": [
+     18,
+     18
+    ],
+    "chance": 20
+   },
+   {
+    "scene": "window",
+    "say": "Big mistake. Every zombie stops dancing.",
+    "key": "mistake",
+    "clock": "12:46",
+    "turn": true,
+    "zombies": 5,
+    "chance": 10,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "stairs",
+    "say": "And now they're all running up the stairs.",
+    "key": "running",
+    "clock": "12:46",
+    "floors": [
+     19,
+     20
+    ],
+    "below": true,
+    "chance": 5,
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "Two floors left. The roof door is right there.",
+    "key": "right",
+    "clock": "12:47",
+    "chance": 10
+   },
+   {
     "scene": "choice",
-    "say": "Do you keep running, or hum really quietly?",
+    "say": "Do you keep running, or start humming really quietly?",
     "key": "running quietly",
     "choice": [
      "KEEP RUNNING",
@@ -530,76 +770,166 @@
     ]
    }
   ],
-  "caption": "Keep singing or they stop dancing 🎤🧟 21 floors to go... STICKMAN SURVIVAL — Part 7. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Keep running (A) or hum quietly (B)? Comment 👇 and follow for Part 8. #stickman #animation #zombie #story #framey"
+  "caption": "Never stop singing... until you do 🎤🧟 STICKMAN SURVIVAL — Season 2, Part 7. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Keep running (A) or hum quietly (B)? Comment 👇 and follow for Part 8. #stickman #animation #zombie #story #framey"
  },
  "finale2": {
   "part": 8,
   "title": "The Rescue",
+  "hook": "Would you survive this?",
   "next": "FOLLOW FOR SEASON 3",
   "shots": [
    {
-    "scene": "title",
-    "say": "If you picked A, you kept running.",
-    "key": "running",
+    "scene": "door",
+    "say": "The roof door is locked. Again.",
+    "key": "again",
+    "title_overlay": true,
+    "locked": true,
+    "rattle": true,
+    "clock": "12:47",
+    "chance": 5,
+    "sfx": [
+     "bang"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "If you picked B, humming was too quiet. They caught you.",
+    "key": "caught",
+    "screen": [
+     "GAME OVER",
+     "Too quiet!"
+    ],
+    "chance": 0,
     "sfx": [
      "sting"
     ]
    },
    {
+    "scene": "stairs",
+    "say": "But if you picked A, you kept running. Good.",
+    "key": "running",
+    "floors": [
+     20,
+     21
+    ],
+    "below": true,
+    "clock": "12:47",
+    "chance": 15,
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
     "scene": "door",
-    "say": "The roof door. Locked. Again?!",
-    "key": "again",
-    "clock": "12:44",
+    "say": "You pull. You push. It will not open.",
+    "key": "open",
     "locked": true,
     "rattle": true,
+    "clock": "12:47",
+    "chance": 10,
     "sfx": [
      "bang"
     ]
    },
    {
     "scene": "door",
-    "say": "Then, a knock. From the other side.",
-    "key": "knock",
-    "clock": "12:44",
+    "say": "Then someone knocks. From the roof side.",
+    "key": "knocks",
     "knock": true,
     "feet": true,
+    "clock": "12:48",
+    "chance": 20,
     "sfx": [
      "knock"
     ]
    },
    {
+    "scene": "door",
+    "say": "A voice whispers: step back.",
+    "key": "back",
+    "feet": true,
+    "clock": "12:48"
+   },
+   {
     "scene": "roof",
-    "say": "The door swings open. The pilot throws you a rope!",
+    "say": "The door flies open. It's the pilot!",
+    "key": "pilot",
+    "heli": "hover",
+    "you": "scared",
+    "clock": "12:48",
+    "chance": 50,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "She throws down a rope. Grab it!",
     "key": "rope",
-    "clock": "12:45",
+    "heli": "hover",
+    "rope": true,
+    "clock": "12:48",
+    "chance": 65,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "You hold on as tight as you can.",
+    "key": "tight",
     "heli": "hover",
     "rope": true,
     "you": "hang",
+    "clock": "12:49",
+    "chance": 80,
     "sfx": [
      "heli"
     ]
    },
    {
     "scene": "window",
-    "say": "Below you, every zombie waves goodbye, and keeps dancing.",
-    "key": "goodbye",
-    "clock": "12:46",
+    "say": "Below you, the zombies are dancing again.",
+    "key": "dancing",
     "dance": true,
-    "zombies": 5
+    "zombies": 5,
+    "clock": "12:49"
+   },
+   {
+    "scene": "window",
+    "say": "One of them waves goodbye. Wait, is that your neighbor?",
+    "key": "neighbor",
+    "dance": true,
+    "zombies": 5,
+    "clock": "12:49",
+    "chance": 90
    },
    {
     "scene": "alert",
-    "say": "Your phone buzzes one last time. Season three?",
-    "key": "three",
-    "clock": "12:47",
+    "say": "Then your phone buzzes one last time.",
+    "key": "last",
+    "clock": "12:50",
     "red": false,
     "screen": [
      "NEW MESSAGE",
      "Season 3?",
      "Reply YES or NO"
     ],
+    "chance": 95,
     "sfx": [
      "buzz"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "The message just says: Season three?",
+    "key": "three",
+    "clock": "12:50",
+    "red": false,
+    "screen": [
+     "NEW MESSAGE",
+     "Season 3?",
+     "Reply YES or NO"
     ]
    },
    {
@@ -612,6 +942,6 @@
     ]
    }
   ],
-  "caption": "You made it out... or did you? 🚁🧟 STICKMAN SURVIVAL — Part 8, the Season 2 finale. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Should we make SEASON 3? Comment YES or NO 👇 and follow! #stickman #animation #zombie #story #framey"
+  "caption": "You made it out... but wait, was that your NEIGHBOR? 🚁🧟 STICKMAN SURVIVAL — Season 2 finale, Part 8. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Should we make SEASON 3? Comment YES or NO 👇 and follow! #stickman #animation #zombie #story #framey"
  }
 }
