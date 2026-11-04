@@ -718,6 +718,89 @@ function TitleMaker({ fps, hasSel, onAdd, onClose }) {
   );
 }
 
+// ================= Song search (30-second song clips from Apple Music) =================
+function MusicSearch({ onPick, onSkip, onClose }) {
+  const [q, setQ] = useState("");
+  const [res, setRes] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [playing, setPlaying] = useState(null);
+  const [taking, setTaking] = useState(null);
+  const au = useRef(), inp = useRef();
+  useEffect(() => { const t = setTimeout(() => inp.current && inp.current.focus(), 60); return () => { clearTimeout(t); if (au.current) au.current.pause(); }; }, []);
+  useEffect(() => {
+    const term = q.trim();
+    if (term.length < 2) { setRes(null); setErr(""); setBusy(false); return; }
+    let dead = false; setBusy(true);
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&entity=song&limit=25`);
+        const d = await r.json();
+        if (!dead) { setRes((d.results || []).filter((x) => x.previewUrl)); setErr(""); }
+      } catch { if (!dead) setErr("Couldn't search right now. Check your internet and try again."); }
+      if (!dead) setBusy(false);
+    }, 350);
+    return () => { dead = true; clearTimeout(t); };
+  }, [q]);
+  const listen = (s) => {
+    const a = au.current;
+    if (!a) return;
+    if (playing === s.trackId) { a.pause(); setPlaying(null); return; }
+    a.src = s.previewUrl; a.play().catch(() => {}); setPlaying(s.trackId);
+  };
+  const use = async (s) => {
+    setTaking(s.trackId); if (au.current) au.current.pause(); setPlaying(null);
+    try {
+      const r = await fetch(s.previewUrl);
+      if (!r.ok) throw new Error("http");
+      const b = await r.blob();
+      onPick(new Blob([b], { type: b.type && b.type.startsWith("audio") ? b.type : "audio/mp4" }), `${s.trackName} – ${s.artistName}`);
+    } catch { setErr("Couldn't get that song. Try another one."); }
+    setTaking(null);
+  };
+  return (
+    <div className="over" role="dialog" aria-label="Find a song">
+      <audio ref={au} onEnded={() => setPlaying(null)} />
+      <div className="bar">
+        <button className="pill" onClick={onClose}>Back</button>
+        <strong className="otitle">Find a song</strong>
+        {onSkip ? <button className="pill" onClick={onSkip}>No music</button> : <span style={{ width: 64 }} />}
+      </div>
+      <label className="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="2.4" /><path d="m15.5 15.5 5 5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg>
+        <input ref={inp} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search songs or artists" aria-label="Search songs or artists" enterKeyHint="search" autoComplete="off" />
+      </label>
+      <div className="slist">
+        {err && <p className="sub">{err}</p>}
+        {res === null && (
+          <>
+            <p className="sub">Type a song or an artist, tap Play to listen, then Use. Each song is a 30-second clip that repeats if your movie is longer.</p>
+            <strong className="sh">Framey's own songs</strong>
+            {Object.entries(TRACKS).map(([k, v]) => (
+              <div className="srow" key={k}>
+                <div className="sart" aria-hidden="true">♪</div>
+                <div className="sinfo"><b>{v}</b><span>Built into Framey</span></div>
+                <button className="pill go" onClick={() => onPick(synthTrack(k), `${v} (built-in)`)}>Use</button>
+              </div>
+            ))}
+          </>
+        )}
+        {busy && <p className="sub">Searching…</p>}
+        {!busy && res && !res.length && !err && <p className="sub">No songs found. Try different words.</p>}
+        {!busy && res && res.map((s) => (
+          <div className="srow" key={s.trackId}>
+            <img className="sart" src={s.artworkUrl100} alt="" />
+            <div className="sinfo"><b>{s.trackName}</b><span>{s.artistName}</span></div>
+            <button className="pill" aria-pressed={playing === s.trackId} aria-label={`${playing === s.trackId ? "Stop" : "Play"} ${s.trackName}`} onClick={() => listen(s)}>{playing === s.trackId ? "Stop" : "Play"}</button>
+            <button className="pill go" disabled={taking !== null} aria-label={`Use ${s.trackName}`} onClick={() => use(s)}>{taking === s.trackId ? "…" : "Use"}</button>
+          </div>
+        ))}
+      </div>
+      <p className="sub fine">Song clips are previews from Apple Music. They're fine in movies you keep, but if you post a video online, the site may mute a song you don't own the rights to.</p>
+    </div>
+  );
+}
+
 // ================= Studio (one movie) =================
 function Studio({ project, onBack, onMeta }) {
   const d = { ...DEFAULTS, ...project.data };
@@ -762,6 +845,9 @@ function Studio({ project, onBack, onMeta }) {
   const [drawing, setDrawing] = useState(false);
   const [titling, setTitling] = useState(false);
   const [tut, setTut] = useState(false);
+  const [askMusic, setAskMusic] = useState(false);
+  const [askedMusic, setAskedMusic] = useState(false);
+  const [searching, setSearching] = useState(null);
   const [msg, setMsg] = useState("");
   const [preview, setPreview] = useState(false);
   const [making, setMaking] = useState(null);
@@ -910,11 +996,18 @@ function Studio({ project, onBack, onMeta }) {
     } catch { setMsg("The microphone is blocked. Allow it in your browser to record a voice-over."); }
   };
 
-  const createVideo = async () => {
+  // Before the first video of a visit, offer to add music (only when the movie has no sound yet)
+  const startCreate = () => {
     if (!frames.length) { setMsg("Take a few frames first."); return; }
+    if (!music && !voice && !askedMusic) { setPreview(false); stopPlay(); setAskMusic(true); return; }
+    createVideo();
+  };
+  const createVideo = async (over) => {
+    if (!frames.length) { setMsg("Take a few frames first."); return; }
+    const song = over && over.music ? over.music : music;
     setPreview(false); stopPlay(); setMaking(0);
     try {
-      const r = await renderVideo({ frames, fps, voice, vol, music, musicVol, pingpong, fadeIn, fadeOut, look: { deflicker, chroma, chromaBg, chromaTol }, onProgress: setMaking });
+      const r = await renderVideo({ frames, fps, voice, vol, music: song, musicVol, pingpong, fadeIn, fadeOut, look: { deflicker, chroma, chromaBg, chromaTol }, onProgress: setMaking });
       setVideo({ ...r, url: URL.createObjectURL(r.blob) });
     } catch { setMsg("Couldn't create the video. Your frames are safe. Try again in Safari or Chrome."); }
     setMaking(null);
@@ -1074,7 +1167,7 @@ function Studio({ project, onBack, onMeta }) {
             <span className="sub">{frames.length} {frames.length === 1 ? "frame" : "frames"}, {(buildSeq(frames, pingpong).length / fps).toFixed(1)} s</span>
           </div>
         </div>
-        <button className="pill go" onClick={createVideo} disabled={!frames.length || making !== null}>Create video</button>
+        <button className="pill go" onClick={startCreate} disabled={!frames.length || making !== null}>Create video</button>
       </header>
 
       <main className="view" ref={viewRef}>
@@ -1189,6 +1282,7 @@ function Studio({ project, onBack, onMeta }) {
 
           <strong className="sh">Sound</strong>
           <div className="row">
+            <button onClick={() => { setSheet(false); setSearching("pick"); }}>Search songs</button>
             <button onClick={() => musicPick.current.click()}>{music ? "Use a different song" : "Add your music"}</button>
             <label className="field">Built-in music
               <select value="" onChange={(e) => { const k = e.target.value; if (k) { setMusic(synthTrack(k)); setMusicName(`${TRACKS[k]} (built-in)`); } }}>
@@ -1231,7 +1325,7 @@ function Studio({ project, onBack, onMeta }) {
       {preview && (
         <Preview frames={frames} fps={fps} setFps={setFps} voiceUrl={voiceUrl} vol={vol} musicUrl={musicUrl} musicVol={musicVol}
           look={{ deflicker, chroma, chromaBg, chromaTol }} fadeIn={fadeIn} fadeOut={fadeOut}
-          pingpong={pingpong} setPingpong={setPingpong} onClose={() => setPreview(false)} onCreate={createVideo} />
+          pingpong={pingpong} setPingpong={setPingpong} onClose={() => setPreview(false)} onCreate={startCreate} />
       )}
 
       {making !== null && (
@@ -1245,6 +1339,21 @@ function Studio({ project, onBack, onMeta }) {
       {drawing && sel !== null && frames[sel] && (
         <Drawer src={frames[sel].src} onClose={() => setDrawing(false)}
           onSave={(src) => { edit(frames.map((f, i) => (i === sel ? { ...f, src } : f))); setDrawing(false); setMsg("Drawing saved on this frame."); }} />
+      )}
+      {askMusic && (
+        <div className="over center" role="dialog" aria-label="Add music?">
+          <strong className="otitle">Add music to your movie?</strong>
+          <p className="sub">Search for any song, or pick one of Framey's own tunes.</p>
+          <div className="row" style={{ justifyContent: "center" }}>
+            <button className="pill go" onClick={() => { setAskMusic(false); setAskedMusic(true); setSearching("create"); }}>Yes, find a song</button>
+            <button className="pill" onClick={() => { setAskMusic(false); setAskedMusic(true); createVideo(); }}>No thanks</button>
+          </div>
+        </div>
+      )}
+      {searching && (
+        <MusicSearch onClose={() => setSearching(null)}
+          onSkip={searching === "create" ? () => { setSearching(null); createVideo(); } : null}
+          onPick={(b, name) => { const go = searching === "create"; setMusic(b); setMusicName(name); setSearching(null); setMsg(`Music added: ${name}`); if (go) createVideo({ music: b }); }} />
       )}
       {tut && <Tutorial onClose={() => setTut(false)} />}
       {titling && <TitleMaker fps={fps} hasSel={sel !== null} onClose={() => setTitling(false)} onAdd={addTitle} />}
@@ -1432,6 +1541,16 @@ const css = `
 .hs .sheet button.go{background:var(--clay);color:#111}
 .hs .over{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;gap:10px;background:#111;padding:max(10px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom))}
 .hs .over.center{align-items:center;justify-content:center;text-align:center;padding:24px}
+.hs .search{display:flex;align-items:center;gap:8px;background:#1C1C1E;border:2px solid var(--clay);border-radius:14px;padding:0 12px;min-height:50px;color:var(--dim)}
+.hs .search input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--ink);font:inherit;font-size:1.05rem}
+.hs .slist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+.hs .srow{display:flex;align-items:center;gap:10px;padding:6px 8px 6px 6px;border-radius:14px;background:#1C1C1E}
+.hs .sart{width:52px;height:52px;flex:0 0 auto;border-radius:9px;object-fit:cover;background:var(--clay);color:#111;display:grid;place-items:center;font-size:1.4rem;font-weight:800}
+.hs .sinfo{flex:1;min-width:0;display:grid;gap:1px}
+.hs .sinfo b,.hs .sinfo span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs .sinfo span{color:var(--dim);font-size:.85rem}
+.hs .srow .pill{min-height:40px;padding:0 14px;flex:0 0 auto}
+.hs .fine{font-size:.75rem;margin:0}
 .hs .over .bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .hs .otitle{font-size:1.05rem;color:var(--clay)}
 .hs .over .pv{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;container-type:size}
