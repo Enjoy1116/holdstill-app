@@ -1,6 +1,6 @@
 // Framey offline support: use the network when it's there, fall back to the saved copy when it isn't.
-const CACHE = "framey-v19";
-const CORE = ["./", "index.html", "app.js?v=18", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "tutorial.jpg",
+const CACHE = "framey-v20";
+const CORE = ["./", "index.html", "app.js?v=19", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "tutorial.jpg",
   "https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => Promise.all(CORE.map((u) => c.add(u).catch(() => {})))).then(() => self.skipWaiting())); });
