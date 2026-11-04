@@ -427,6 +427,7 @@ def episode(name, preview=False):
         if os.path.exists(vp): s["_voice"] = read_wav(vp); vd = len(s["_voice"]) / SR
         else: s["_voice"] = None; vd = 0.36 * len(s["say"].split()) + 0.3
         s["_vd"] = vd; s["_dur"] = max(1.4, vd + (0.55 if s["scene"] != "choice" else 1.3)); s["_t0"] = t; t += s["_dur"]
+        s["_chance"] = s.get("chance", shots[-1]["_chance"] if shots else None); s["_chance0"] = shots[-1]["_chance"] if shots else s["_chance"]
         s["_words"] = words_of(s["say"], s.get("key")); s["_chunks"] = chunks(s["_words"])
         n = len(s["_words"]); ws = [len(w) + 2 for w, _ in s["_words"]]; tot = sum(ws); acc = 0; s["_wt"] = []
         for x in ws: s["_wt"].append(0.12 + (vd * 0.94) * acc / tot); acc += x
@@ -450,7 +451,16 @@ def episode(name, preview=False):
             h2, m2 = divmod(tm % (24 * 60), 60); txt = f"{(h2 - 1) % 12 + 1}:{m2:02d} {'AM' if h2 >= 12 else 'PM'}"
             L = text_line([(txt, WHITE)], 44, 5); im.paste(L, (40, 190), L)
         L = text_line([("PART " + str(ep["part"]), YEL)], 40, 5); im.paste(L, (W - L.width - 40, 190), L)
-        if s["scene"] == "title":
+        if s.get("_chance") is not None and s["scene"] != "choice":
+            c0 = s["_chance0"] if s["_chance0"] is not None else s["_chance"]; k = min(1, max(0, (u - 0.3) / 0.6)); c = round(c0 + (s["_chance"] - c0) * k)
+            col = (70, 210, 120) if c >= 60 else (255, 214, 10) if c >= 30 else RED
+            bar = Image.new("RGBA", (440, 78), (0, 0, 0, 0)); bd = ImageDraw.Draw(bar)
+            bd.rounded_rectangle([0, 0, 439, 77], 39, fill=(0, 0, 0, 210)); bd.rounded_rectangle([8, 8, 8 + max(24, int(424 * c / 100)), 69], 31, fill=col + (255,))
+            bd.text((220, 39), f"SURVIVAL {c}%", font=F(42), fill=WHITE, anchor="mm", stroke_width=4, stroke_fill=(0, 0, 0))
+            im.paste(bar, (40, 258), bar)
+        if ep.get("hook") and not s.get("rule") and s["scene"] not in ("choice", "title") and not s.get("title_overlay"):
+            paste_c(im, text_line([(ep["hook"].upper(), YEL)], 56, 6), 1530, 1.0)
+        if s["scene"] == "title" or s.get("title_overlay"):
             paste_c(im, text_line([("STICKMAN", WHITE)], 120), 520, spring(u)); paste_c(im, text_line([("SURVIVAL", RED)], 132), 660, spring(u - 0.12))
             paste_c(im, text_line([(ep["title"].upper(), YEL)], 74), 820, spring(u - 0.3))
         if s.get("rule"):
