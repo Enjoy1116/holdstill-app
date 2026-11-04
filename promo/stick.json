@@ -1,0 +1,310 @@
+{
+ "alert": {
+  "part": 1,
+  "title": "The Alert",
+  "shots": [
+   {
+    "scene": "title",
+    "say": "Would you survive the night?",
+    "key": "survive",
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "At midnight, every phone in the city buzzed at once.",
+    "key": "buzzed",
+    "clock": "11:59",
+    "sfx": [
+     "buzz"
+    ],
+    "screen": [
+     "EMERGENCY ALERT",
+     "Stay inside.",
+     "Lock your door."
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "Stay inside. Lock your door. And do not make a sound.",
+    "key": "sound",
+    "clock": "12:00",
+    "rule": [
+     "RULE #1",
+     "DON'T MAKE A SOUND"
+    ],
+    "buzz": false,
+    "screen": [
+     "EMERGENCY ALERT",
+     "Do not make",
+     "a sound."
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "Outside, something is walking. Very. Slowly.",
+    "key": "slowly",
+    "clock": "12:03"
+   },
+   {
+    "scene": "room",
+    "say": "You turn off every light.",
+    "key": "light",
+    "clock": "12:05",
+    "lights_off": true
+   },
+   {
+    "scene": "room",
+    "say": "Then your stomach growls. Really loud.",
+    "key": "loud",
+    "clock": "12:06",
+    "growl": true,
+    "shake": true,
+    "sfx": [
+     "growl"
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "Every zombie on the street stops, and looks up at your window.",
+    "key": "window",
+    "clock": "12:06",
+    "turn": true,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Do you hide under the bed, or run for the roof?",
+    "key": "hide roof",
+    "choice": [
+     "HIDE UNDER THE BED",
+     "RUN FOR THE ROOF"
+    ]
+   }
+  ],
+  "caption": "Would you survive the night? 🧟📱 STICKMAN SURVIVAL — Part 1. Every frame drawn by hand in Framey, the stop-motion app for your phone. Want to make videos like this? Use Framey — coming soon! Would you HIDE (A) or RUN (B)? Comment 👇 and follow for Part 2. #stickman #animation #zombie #story #framey"
+ },
+ "stairs": {
+  "part": 2,
+  "title": "The Stairs",
+  "shots": [
+   {
+    "scene": "title",
+    "say": "If you picked B, this one is for you.",
+    "key": "B",
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "Knock. Knock. Knock.",
+    "key": "knock",
+    "clock": "12:07",
+    "knock": true,
+    "feet": true,
+    "sfx": [
+     "knock"
+    ],
+    "rule": [
+     "RULE #2",
+     "NEVER OPEN THE DOOR"
+    ]
+   },
+   {
+    "scene": "hallway",
+    "say": "You sneak out the back. The hallway light is flickering.",
+    "key": "flickering",
+    "clock": "12:08",
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "stairs",
+    "say": "Twelve floors. No elevator. Run!",
+    "key": "run",
+    "clock": "12:09",
+    "floors": [
+     3,
+     9
+    ],
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "stairs",
+    "say": "On floor ten, you hear footsteps, right below you.",
+    "key": "below",
+    "clock": "12:10",
+    "floors": [
+     10,
+     11
+    ],
+    "below": true,
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "The roof door. Is. Locked.",
+    "key": "locked",
+    "clock": "12:11",
+    "locked": true,
+    "rattle": true,
+    "sfx": [
+     "bang"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Do you break the door, or climb the pipe?",
+    "key": "break climb",
+    "choice": [
+     "BREAK THE DOOR",
+     "CLIMB THE PIPE"
+    ]
+   }
+  ],
+  "caption": "Twelve floors. No elevator. RUN. 🏃‍♂️🧟 STICKMAN SURVIVAL — Part 2. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Break the door (A) or climb the pipe (B)? Comment 👇 and follow for Part 3. #stickman #animation #zombie #story #framey"
+ },
+ "roof": {
+  "part": 3,
+  "title": "The Roof",
+  "shots": [
+   {
+    "scene": "title",
+    "say": "If you picked B, you climbed the pipe.",
+    "key": "pipe",
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "You pull yourself onto the roof. The whole city is dark.",
+    "key": "dark",
+    "clock": "12:14",
+    "you": "climb"
+   },
+   {
+    "scene": "roof",
+    "say": "Then a light sweeps across the sky. A helicopter!",
+    "key": "helicopter",
+    "clock": "12:15",
+    "heli": "arrive",
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "But the zombies hear it too.",
+    "key": "hear",
+    "clock": "12:15",
+    "heli": "hover",
+    "rule": [
+     "RULE #3",
+     "LIGHT ATTRACTS THEM"
+    ],
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "The roof door starts to shake.",
+    "key": "shake",
+    "clock": "12:16",
+    "rattle": true,
+    "you": "scared",
+    "sfx": [
+     "bang"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Do you wave for the helicopter, or hide behind the water tank?",
+    "key": "wave hide",
+    "choice": [
+     "WAVE FOR HELP",
+     "HIDE BEHIND THE TANK"
+    ]
+   }
+  ],
+  "caption": "A helicopter… but the zombies hear it too 🚁🧟 STICKMAN SURVIVAL — Part 3. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Wave (A) or hide (B)? Comment 👇 and follow for Part 4. #stickman #animation #zombie #story #framey"
+ },
+ "twist": {
+  "part": 4,
+  "title": "The Twist",
+  "shots": [
+   {
+    "scene": "title",
+    "say": "Everyone who waved: the helicopter saw you.",
+    "key": "saw",
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "A rope drops down. You grab it and hold on tight.",
+    "key": "tight",
+    "clock": "12:18",
+    "heli": "hover",
+    "rope": true,
+    "you": "hang",
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "Below you, the zombies all stop, and start to dance?",
+    "key": "dance",
+    "clock": "12:19",
+    "dance": true,
+    "zombies": 4
+   },
+   {
+    "scene": "window",
+    "say": "Wait. Was it all a giant zombie dance party?",
+    "key": "party",
+    "clock": "12:20",
+    "dance": true,
+    "zombies": 4
+   },
+   {
+    "scene": "alert",
+    "say": "Your phone buzzes one last time.",
+    "key": "last",
+    "clock": "12:21",
+    "sfx": [
+     "buzz"
+    ],
+    "red": false,
+    "screen": [
+     "NEW MESSAGE",
+     "Did you survive?",
+     "Season 2 soon..."
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Should we make season two? Comment yes or no!",
+    "key": "yes no",
+    "choice": [
+     "YES, SEASON 2!",
+     "NO WAY"
+    ]
+   }
+  ],
+  "caption": "Wait… was it all a zombie DANCE PARTY?! 🕺🧟 STICKMAN SURVIVAL — Part 4, the twist. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Should we make Season 2? Comment YES or NO 👇 and follow! #stickman #animation #zombie #story #framey",
+  "next": "FOLLOW FOR SEASON 2"
+ }
+}
