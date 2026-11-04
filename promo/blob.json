@@ -1,38 +1,718 @@
 {
- "stack": {
+ "zombie": {
   "ep": 1,
-  "hook": [[["Can ", "w"], ["Blob", "o"], [" reach", "w"]], [["the top?", "w"]]],
-  "subs": [[0, [[["Five cups...", "w"]]]], [12, [[["almost a tower", "w"]]]], [22, [[["Blob: ", "o"], ["\"I got this\"", "w"]]]], [25, [[["JUMP!", "o"]]]], [31, [[["MADE IT!", "o"]]]]],
-  "sfx": [[3, "clack"], [7, "clack"], [11, "clack"], [15, "clack"], [19, "clack"], [23, "boing"], [25, "whoosh"], [31, "boing"], [33, "boing"], [37, "pop"]],
-  "replay": [24, 33],
-  "ask": [[["What should ", "w"], ["Blob", "o"]], [["climb next?", "w"]]],
-  "caption": "Can Blob reach the top? 🥤🟠 Episode 1 of the Blob series — every frame is one photo, made with Framey, the stop-motion app for your phone. Coming soon! What should Blob climb next? Tell us below 👇 and follow for Part 2. #stopmotion #claymation #animation #framey"
+  "speed": 4,
+  "replay": null,
+  "hook": [
+   [
+    [
+     "Can you survive the",
+     "w"
+    ]
+   ],
+   [
+    [
+     "ZOMBIE",
+     "o"
+    ],
+    [
+     " apocalypse?",
+     "w"
+    ]
+   ]
+  ],
+  "subs": [
+   [
+    0,
+    [
+     [
+      [
+       "just a normal day...",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    9,
+    [
+     [
+      [
+       "wait... what's that?",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    14,
+    [
+     [
+      [
+       "ZOMBIES!",
+       "o"
+      ]
+     ]
+    ]
+   ],
+   [
+    20,
+    [
+     [
+      [
+       "JUMP!",
+       "o"
+      ]
+     ]
+    ]
+   ],
+   [
+    26,
+    [
+     [
+      [
+       "they're coming...",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    32,
+    [
+     [
+      [
+       "BONK!",
+       "o"
+      ]
+     ]
+    ]
+   ],
+   [
+    36,
+    [
+     [
+      [
+       "Blob survived!",
+       "o"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "sfx": [
+   [
+    1,
+    "boing"
+   ],
+   [
+    5,
+    "boing"
+   ],
+   [
+    14,
+    "rumble"
+   ],
+   [
+    20,
+    "whoosh"
+   ],
+   [
+    25,
+    "boing"
+   ],
+   [
+    32,
+    "splat"
+   ],
+   [
+    33,
+    "pop"
+   ],
+   [
+    36,
+    "boing"
+   ],
+   [
+    39,
+    "boing"
+   ]
+  ],
+  "ask": [
+   [
+    [
+     "Would ",
+     "w"
+    ],
+    [
+     "YOU",
+     "o"
+    ],
+    [
+     " survive?",
+     "w"
+    ]
+   ]
+  ],
+  "caption": "Can you survive the zombie apocalypse? 🧟 Blob tried… in slow motion. Episode 1 of the Blob series! Want to make videos like this? Use Framey, the stop-motion app for your phone — coming soon. Would YOU survive? 👇 Follow for Part 2. #stopmotion #claymation #zombies #animation #framey"
+ },
+ "stack": {
+  "ep": 2,
+  "hook": [
+   [
+    [
+     "Can ",
+     "w"
+    ],
+    [
+     "Blob",
+     "o"
+    ],
+    [
+     " reach",
+     "w"
+    ]
+   ],
+   [
+    [
+     "the top?",
+     "w"
+    ]
+   ]
+  ],
+  "subs": [
+   [
+    0,
+    [
+     [
+      [
+       "Five cups...",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    12,
+    [
+     [
+      [
+       "almost a tower",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    22,
+    [
+     [
+      [
+       "Blob: ",
+       "o"
+      ],
+      [
+       "\"I got this\"",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    25,
+    [
+     [
+      [
+       "JUMP!",
+       "o"
+      ]
+     ]
+    ]
+   ],
+   [
+    31,
+    [
+     [
+      [
+       "MADE IT!",
+       "o"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "sfx": [
+   [
+    3,
+    "clack"
+   ],
+   [
+    7,
+    "clack"
+   ],
+   [
+    11,
+    "clack"
+   ],
+   [
+    15,
+    "clack"
+   ],
+   [
+    19,
+    "clack"
+   ],
+   [
+    23,
+    "boing"
+   ],
+   [
+    25,
+    "whoosh"
+   ],
+   [
+    31,
+    "boing"
+   ],
+   [
+    33,
+    "boing"
+   ],
+   [
+    37,
+    "pop"
+   ]
+  ],
+  "replay": [
+   24,
+   33
+  ],
+  "ask": [
+   [
+    [
+     "What should ",
+     "w"
+    ],
+    [
+     "Blob",
+     "o"
+    ]
+   ],
+   [
+    [
+     "climb next?",
+     "w"
+    ]
+   ]
+  ],
+  "caption": "Can Blob reach the top? 🥤🟠 Episode 2 of the Blob series — every frame is one photo, made with Framey, the stop-motion app for your phone. Want to make videos like this? Use Framey — coming soon! What should Blob climb next? Tell us below 👇 and follow for Part 3. #stopmotion #claymation #animation #framey"
  },
  "race": {
-  "ep": 2,
-  "hook": [[["Which car wins?", "w"]], [["Blob", "o"], [" picked red", "w"]]],
-  "subs": [[0, [[["3... 2... 1... GO!", "w"]]]], [10, [[["Blue is way ahead", "w"]]]], [19, [[["wait for it...", "w"]]]], [25, [[["RED WINS!", "o"]]]], [28, [[["Blob called it", "w"]]]]],
-  "sfx": [[0, "vroom"], [8, "whoosh"], [16, "whoosh"], [22, "whoosh"], [25, "ding"], [26, "boing"], [30, "boing"], [34, "boing"]],
-  "replay": [19, 28],
-  "ask": [[["Which car would", "w"]], [["YOU", "o"], [" pick?", "w"]]],
-  "caption": "Which car wins? 🏎️ Blob picked red… Episode 2 of the Blob series, made photo by photo with Framey, the stop-motion app. Coming soon! Would you pick red or blue? Comment 👇 and follow for Part 3. #stopmotion #toycars #animation #framey"
- },
- "split": {
   "ep": 3,
-  "hook": [[["Blob", "o"], [" got squished...", "w"]], [["then THIS happened", "w"]]],
-  "subs": [[0, [[["boing... boing...", "w"]]]], [8, [[["uh oh", "w"]]]], [10, [[["POP!", "o"]]]], [15, [[["...there are", "w"]], [["THREE", "o"], [" of him now", "w"]]]]],
-  "sfx": [[0, "boing"], [4, "boing"], [8, "splat"], [10, "pop"], [15, "boing"], [17, "boing"], [19, "boing"], [23, "boing"], [25, "boing"], [27, "boing"]],
-  "replay": [7, 16],
-  "ask": [[["Should all 3 ", "w"], ["Blobs", "o"]], [["stay?", "w"]]],
-  "caption": "Blob got squished… then THIS happened 😳🟠🟠🟠 Episode 3 of the Blob series — all made with Framey, the stop-motion app for your phone. Coming soon! Should all 3 Blobs stay? Vote below 👇 and follow for Part 4. #stopmotion #claymation #animation #framey"
+  "hook": [
+   [
+    [
+     "Which car wins?",
+     "w"
+    ]
+   ],
+   [
+    [
+     "Blob",
+     "o"
+    ],
+    [
+     " picked red",
+     "w"
+    ]
+   ]
+  ],
+  "subs": [
+   [
+    0,
+    [
+     [
+      [
+       "3... 2... 1... GO!",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    10,
+    [
+     [
+      [
+       "Blue is way ahead",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    19,
+    [
+     [
+      [
+       "wait for it...",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    25,
+    [
+     [
+      [
+       "RED WINS!",
+       "o"
+      ]
+     ]
+    ]
+   ],
+   [
+    28,
+    [
+     [
+      [
+       "Blob called it",
+       "w"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "sfx": [
+   [
+    0,
+    "vroom"
+   ],
+   [
+    8,
+    "whoosh"
+   ],
+   [
+    16,
+    "whoosh"
+   ],
+   [
+    22,
+    "whoosh"
+   ],
+   [
+    25,
+    "ding"
+   ],
+   [
+    26,
+    "boing"
+   ],
+   [
+    30,
+    "boing"
+   ],
+   [
+    34,
+    "boing"
+   ]
+  ],
+  "replay": [
+   19,
+   28
+  ],
+  "ask": [
+   [
+    [
+     "Which car would",
+     "w"
+    ]
+   ],
+   [
+    [
+     "YOU",
+     "o"
+    ],
+    [
+     " pick?",
+     "w"
+    ]
+   ]
+  ],
+  "caption": "Which car wins? 🏎️ Blob picked red… Episode 3 of the Blob series, made photo by photo with Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Would you pick red or blue? Comment 👇 and follow for Part 4. #stopmotion #toycars #animation #framey"
  },
  "rocket": {
   "ep": 4,
-  "hook": [[["Blob", "o"], [" is going", "w"]], [["to SPACE", "w"]]],
-  "subs": [[0, [[["Blob's first space trip", "w"]]]], [8, [[["hop in!", "w"]]]], [13, [[["3... 2... 1...", "w"]]]], [18, [[["LIFTOFF!", "o"]]]], [27, [[["bye Blob!", "w"]]]]],
-  "sfx": [[0, "boing"], [4, "boing"], [8, "whoosh"], [12, "pop"], [13, "rumble"], [18, "whoosh"], [20, "rumble"]],
-  "replay": [12, 24],
-  "ask": [[["Where should ", "w"], ["Blob", "o"]], [["fly next?", "w"]]],
-  "caption": "Blob is going to SPACE 🚀 Episode 4 of the Blob series, built photo by photo with Framey, the stop-motion app. Coming soon! Where should Blob fly next? Comment 👇 and follow for Part 5. #stopmotion #claymation #animation #framey"
+  "hook": [
+   [
+    [
+     "Blob",
+     "o"
+    ],
+    [
+     " is going",
+     "w"
+    ]
+   ],
+   [
+    [
+     "to SPACE",
+     "w"
+    ]
+   ]
+  ],
+  "subs": [
+   [
+    0,
+    [
+     [
+      [
+       "Blob's first space trip",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    8,
+    [
+     [
+      [
+       "hop in!",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    13,
+    [
+     [
+      [
+       "3... 2... 1...",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    18,
+    [
+     [
+      [
+       "LIFTOFF!",
+       "o"
+      ]
+     ]
+    ]
+   ],
+   [
+    27,
+    [
+     [
+      [
+       "bye Blob!",
+       "w"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "sfx": [
+   [
+    0,
+    "boing"
+   ],
+   [
+    4,
+    "boing"
+   ],
+   [
+    8,
+    "whoosh"
+   ],
+   [
+    12,
+    "pop"
+   ],
+   [
+    13,
+    "rumble"
+   ],
+   [
+    18,
+    "whoosh"
+   ],
+   [
+    20,
+    "rumble"
+   ]
+  ],
+  "replay": [
+   12,
+   24
+  ],
+  "ask": [
+   [
+    [
+     "Where should ",
+     "w"
+    ],
+    [
+     "Blob",
+     "o"
+    ]
+   ],
+   [
+    [
+     "fly next?",
+     "w"
+    ]
+   ]
+  ],
+  "caption": "Blob is going to SPACE 🚀 Episode 4 of the Blob series, built photo by photo with Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Where should Blob fly next? Comment 👇 and follow for Part 5. #stopmotion #claymation #animation #framey"
+ },
+ "split": {
+  "ep": 5,
+  "hook": [
+   [
+    [
+     "Blob",
+     "o"
+    ],
+    [
+     " got squished...",
+     "w"
+    ]
+   ],
+   [
+    [
+     "then THIS happened",
+     "w"
+    ]
+   ]
+  ],
+  "subs": [
+   [
+    0,
+    [
+     [
+      [
+       "boing... boing...",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    8,
+    [
+     [
+      [
+       "uh oh",
+       "w"
+      ]
+     ]
+    ]
+   ],
+   [
+    10,
+    [
+     [
+      [
+       "POP!",
+       "o"
+      ]
+     ]
+    ]
+   ],
+   [
+    15,
+    [
+     [
+      [
+       "...there are",
+       "w"
+      ]
+     ],
+     [
+      [
+       "THREE",
+       "o"
+      ],
+      [
+       " of him now",
+       "w"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "sfx": [
+   [
+    0,
+    "boing"
+   ],
+   [
+    4,
+    "boing"
+   ],
+   [
+    8,
+    "splat"
+   ],
+   [
+    10,
+    "pop"
+   ],
+   [
+    15,
+    "boing"
+   ],
+   [
+    17,
+    "boing"
+   ],
+   [
+    19,
+    "boing"
+   ],
+   [
+    23,
+    "boing"
+   ],
+   [
+    25,
+    "boing"
+   ],
+   [
+    27,
+    "boing"
+   ]
+  ],
+  "replay": [
+   7,
+   16
+  ],
+  "ask": [
+   [
+    [
+     "Should all 3 ",
+     "w"
+    ],
+    [
+     "Blobs",
+     "o"
+    ]
+   ],
+   [
+    [
+     "stay?",
+     "w"
+    ]
+   ]
+  ],
+  "caption": "Blob got squished… then THIS happened 😳🟠🟠🟠 Episode 5 of the Blob series — all made with Framey, the stop-motion app for your phone. Want to make videos like this? Use Framey — coming soon! Should all 3 Blobs stay? Vote below 👇 and follow for Part 6. #stopmotion #claymation #animation #framey"
  }
 }
