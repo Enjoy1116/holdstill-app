@@ -125,6 +125,129 @@ function align(src, R) {
   }
   return { a: b1.a, s: b1.s, x: b2.dx / c2.w, y: b2.dy / c2.w, q: b2.v };
 }
+// ---------- Lock 2: match hundreds of tiny details (wood-grain corners, object edges) between the
+// locked view and each new photo, then work out the shift, tilt and zoom from the ones that agree.
+// Uses OpenCV (loaded the first time you tap Lock). Falls back to the simple Lock above if it can't load.
+const CV_URL = "https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js";
+let cvLib = null, cvLoading = null, cvOrb = null, cvBf = null;
+function loadCV() {
+  // never resolve a promise WITH the OpenCV object: it has its own .then() and would loop forever
+  if (cvLib) return Promise.resolve(true);
+  if (cvLoading) return cvLoading;
+  cvLoading = new Promise((ok, bad) => {
+    const s = document.createElement("script");
+    s.src = window.__CV_URL || CV_URL; s.async = true;
+    s.onerror = () => bad(new Error("load"));
+    s.onload = async () => {
+      try {
+        let c = window.cv;
+        for (let i = 0; i < 300 && !(c && c.Mat && c.ORB); i++) { await new Promise((r) => setTimeout(r, 100)); c = window.cv; }
+        if (!(c && c.Mat && c.ORB)) throw new Error("init");
+        cvLib = c; ok(true);
+      } catch (e) { bad(e); }
+    };
+    document.head.appendChild(s);
+  });
+  cvLoading.catch(() => { cvLoading = null; });
+  return cvLoading;
+}
+const FW = 640;
+function orbFeat(src) {
+  const cv = cvLib, w = FW, h = Math.max(32, Math.round((FW * H) / W)), k = "orb" + w + "x" + h;
+  const c = gcv[k] || (gcv[k] = Object.assign(document.createElement("canvas"), { width: w, height: h }));
+  const g = c.getContext("2d", { willReadFrequently: true });
+  g.setTransform(1, 0, 0, 1, 0, 0); cover(g, src, w, h);
+  const rgba = cv.matFromImageData(g.getImageData(0, 0, w, h)), gray = new cv.Mat();
+  cv.cvtColor(rgba, gray, cv.COLOR_RGBA2GRAY); rgba.delete();
+  if (!cvOrb) { cvOrb = new cv.ORB(1500); try { cvOrb.setFastThreshold(5); } catch (e) {} } // low threshold: finds detail even on plain tables
+  const kp = new cv.KeyPointVector(), des = new cv.Mat(), none = new cv.Mat();
+  cvOrb.detectAndCompute(gray, none, kp, des);
+  const pts = [];
+  for (let i = 0; i < kp.size(); i++) { const p = kp.get(i).pt; pts.push([p.x, p.y]); }
+  kp.delete(); none.delete(); gray.delete();
+  return { pts, des, w, h };
+}
+// similarity transform q = [a -b; b a] p + t
+function simFrom2(p1, p2, q1, q2) {
+  const dpx = p2[0] - p1[0], dpy = p2[1] - p1[1], dqx = q2[0] - q1[0], dqy = q2[1] - q1[1];
+  const d = dpx * dpx + dpy * dpy;
+  if (d < 400) return null;
+  const a = (dpx * dqx + dpy * dqy) / d, b = (dpx * dqy - dpy * dqx) / d;
+  return [a, b, q1[0] - (a * p1[0] - b * p1[1]), q1[1] - (b * p1[0] + a * p1[1])];
+}
+function lsqSim(P, Q, idx) {
+  let px = 0, py = 0, qx = 0, qy = 0;
+  for (const i of idx) { px += P[i][0]; py += P[i][1]; qx += Q[i][0]; qy += Q[i][1]; }
+  const n = idx.length; px /= n; py /= n; qx /= n; qy /= n;
+  let sa = 0, sb = 0, sd = 0;
+  for (const i of idx) {
+    const x = P[i][0] - px, y = P[i][1] - py, u = Q[i][0] - qx, v = Q[i][1] - qy;
+    sa += x * u + y * v; sb += x * v - y * u; sd += x * x + y * y;
+  }
+  const a = sa / (sd || 1), b = sb / (sd || 1);
+  return [a, b, qx - (a * px - b * py), qy - (b * px + a * py)];
+}
+function inliersOf(M, P, Q, thr) {
+  const out = [], t2 = thr * thr;
+  for (let k = 0; k < P.length; k++) {
+    const x = M[0] * P[k][0] - M[1] * P[k][1] + M[2] - Q[k][0], y = M[1] * P[k][0] + M[0] * P[k][1] + M[3] - Q[k][1];
+    if (x * x + y * y < t2) out.push(k);
+  }
+  return out;
+}
+function ransacSim(P, Q, thr) {
+  const n = P.length;
+  if (n < 8) return null;
+  let seed = 1234567, best = [];
+  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (let it = 0; it < 600; it++) {
+    const i = Math.floor(rnd() * n), j = Math.floor(rnd() * n);
+    if (i === j) continue;
+    const M = simFrom2(P[i], P[j], Q[i], Q[j]);
+    if (!M) continue;
+    const s = Math.hypot(M[0], M[1]);
+    if (s < 0.75 || s > 1.33) continue;
+    const inl = inliersOf(M, P, Q, thr);
+    if (inl.length > best.length) best = inl;
+  }
+  if (best.length < 10) return null;
+  let M = lsqSim(P, Q, best);
+  for (let r = 0; r < 2; r++) { const inl = inliersOf(M, P, Q, thr); if (inl.length >= 10) { best = inl; M = lsqSim(P, Q, best); } }
+  return { M, inliers: best.length, matches: n };
+}
+function orbAlign(src, R) {
+  const cv = cvLib, F = orbFeat(src);
+  try {
+    if (F.pts.length < 20 || R.pts.length < 20 || F.des.rows < 20) return null;
+    if (!cvBf) cvBf = new cv.BFMatcher(cv.NORM_HAMMING, false);
+    const mm = new cv.DMatchVectorVector();
+    cvBf.knnMatch(F.des, R.des, mm, 2);
+    const P = [], Q = [];
+    for (let i = 0; i < mm.size(); i++) {
+      const m = mm.get(i);
+      if (m.size() >= 2) { const a = m.get(0), b = m.get(1); if (a.distance < 0.8 * b.distance) { P.push(F.pts[a.queryIdx]); Q.push(R.pts[a.trainIdx]); } }
+      if (m.delete) m.delete();
+    }
+    mm.delete();
+    const fit = ransacSim(P, Q, (3 * F.w) / 480);
+    if (!fit) return null;
+    const [a, b, tx, ty] = fit.M, s = Math.hypot(a, b), ang = (Math.atan2(b, a) * 180) / Math.PI;
+    const cx = F.w / 2, cy = F.h / 2;
+    const x = (tx + (a * cx - b * cy) - cx) / F.w, y = (ty + (b * cx + a * cy) - cy) / F.w;
+    if (s < 0.8 || s > 1.25 || Math.abs(ang) > 15 || Math.abs(x) > 0.4 || Math.abs(y) > 0.4) return null;
+    return { a: ang, s, x, y, q: fit.inliers };
+  } finally { F.des.delete(); }
+}
+// What the rest of the app calls
+function lockRefFrom(src) {
+  const R = makeRef(src);
+  if (cvLib) { try { R.orb = orbFeat(src); } catch (e) { R.orb = null; } }
+  return R;
+}
+function lockAlign(src, R) {
+  if (R.orb) { try { return orbAlign(src, R.orb); } catch (e) { return null; } }
+  return align(src, R);
+}
 // Draw a camera picture corrected by a Lock result (edges filled with a zoomed copy so nothing is blank).
 function drawCorrected(g, v, fx) {
   if (!fx) { cover(g, v); return; }
@@ -659,8 +782,9 @@ function Studio({ project, onBack, onMeta }) {
     const g = c.getContext("2d");
     let fx = null;
     if (lockRef.current) {
-      fx = align(v, lockRef.current);
+      fx = lockAlign(v, lockRef.current);
       if (!fx) setMsg("The phone moved too far for Lock to fix this frame. Move it back toward the locked view.");
+      else if (Math.abs(fx.x) > 0.08 || Math.abs(fx.y) > 0.08 || Math.abs(fx.s - 1) > 0.08 || Math.abs(fx.a) > 5) setMsg("Lock fixed a big move. Move the phone back toward where it started so the edges stay clean.");
     }
     drawCorrected(g, v, fx);
     edit([...frames, { id: uid(), src: c.toDataURL("image/jpeg", 0.85) }]);
@@ -700,9 +824,14 @@ function Studio({ project, onBack, onMeta }) {
       let src = vid.current;
       if (frames.length) src = await loadImg(frames[0].src);
       else if (!src || !src.videoWidth) { setMsg("Turn on the camera first, then tap Lock."); return; }
-      lockRef.current = makeRef(src);
+      if (!cvLib) {
+        setMsg("Getting Lock ready… (only the first time)");
+        try { await Promise.race([loadCV(), new Promise((_, no) => setTimeout(no, 30000))]); } catch {}
+        if (!frames.length && !(src && src.videoWidth)) return;
+      }
+      lockRef.current = lockRefFrom(src);
       holdCam(true); setLock(true); setLockOk(true);
-      setMsg(frames.length ? "Locked to your first frame. Small bumps and tilts are corrected." : "Locked. New frames will line up with this view.");
+      setMsg(!lockRef.current.orb ? "Lock is on in basic mode (it couldn't download its helper). Small bumps are corrected." : frames.length ? "Locked to your first frame. Bumps, tilts and small zooms are corrected." : "Locked. New frames will line up with this view.");
     } catch { setMsg("Lock couldn't start. Try again with the camera on."); }
   };
   const move = (i, j) => { if (j < 0 || j >= frames.length) return; const n = [...frames]; n.splice(j, 0, n.splice(i, 1)[0]); edit(n); setSel(j); setTimeout(() => centerThumb(j), 0); };
@@ -854,10 +983,10 @@ function Studio({ project, onBack, onMeta }) {
     const t = setInterval(() => {
       const v = vid.current;
       if (!v || !v.videoWidth || !lockRef.current) return;
-      const f = align(v, lockRef.current);
+      const f = lockAlign(v, lockRef.current);
       setLockOk(!!f);
       setFix((p) => (f && p ? { a: p.a + (f.a - p.a) * 0.6, s: p.s + (f.s - p.s) * 0.6, x: p.x + (f.x - p.x) * 0.6, y: p.y + (f.y - p.y) * 0.6 } : f));
-    }, 250);
+    }, 400);
     return () => clearInterval(t);
   }, [lock, camOn, playing, preview]);
 
