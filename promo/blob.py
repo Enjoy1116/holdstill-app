@@ -8,7 +8,7 @@ import os, sys, glob, json, math, subprocess, wave, shutil
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-V = "/mnt/files/v"
+V = os.environ.get("FRAMEY_DIR", "/mnt/files/v")
 D = os.environ.get("WORK", "/home/user/work"); CF = D + "/cool"
 OUT = os.environ.get("OUTDIR", "/home/user/vout"); FF = os.environ.get("FFMPEG", "ffmpeg")
 FB = V + "/Inter.ttf"; ICON = V + "/icon.png"
@@ -122,18 +122,21 @@ def music(dur):
 # ---------------------------------------------------------------- one episode
 def episode(name, preview=False):
     ep = EP[name]; clip = load_clip(name); n = len(clip)
-    a, b = ep["replay"]; a, b = max(0, a), min(n - 1, b)
-    T_A = n / 8; T_B = (b - a + 1) / 4; T_C = 2.2; dur = T_A + T_B + T_C
+    sp = ep.get("speed", 8)                      # clip playback speed in photos per second (4 = slow motion)
+    rp = ep.get("replay"); a, b = (max(0, rp[0]), min(n - 1, rp[1])) if rp else (0, -1)
+    T_A = n / sp; T_B = (b - a + 1) / 4 if rp else 0; T_C = 2.8; dur = T_A + T_B + T_C
     hook = text_block(ep["hook"], 88); epl = text_block([[["BLOB  ·  EPISODE " + str(ep["ep"]), "o"]]], 40, stroke=5)
     subs = sorted(ep["subs"], key=lambda s: s[0])
     replay = text_block([[["INSTANT REPLAY", "o"]]], 64); slower = text_block([[["(slower)", "g"]]], 44, stroke=5)
     ask = text_block(ep["ask"], 76)
-    tag1 = text_block([[["Framey", "o"], [" · the stop-motion app", "w"]]], 46, stroke=5)
-    tag2 = text_block([[["COMING SOON  ·  ", "g"], ["FOLLOW FOR PART 2", "o"]]], 44, stroke=5)
+    tag0 = text_block([[["Want to make videos like this?", "w"]]], 54, stroke=6)
+    tag1 = text_block([[["Use ", "w"], ["Framey", "o"]]], 96)
+    tag2 = text_block([[["the stop-motion app  ·  COMING SOON", "g"]]], 40, stroke=5)
+    tag3 = text_block([[["FOLLOW FOR PART " + str(ep["ep"] + 1), "o"]]], 46, stroke=5)
     cy = CLIP_Y; ch = clip[0].height
 
     def frame(t):
-        if t < T_A: idx = min(n - 1, int(t * 8)); phase = "A"
+        if t < T_A: idx = min(n - 1, int(t * sp)); phase = "A"
         elif t < T_A + T_B: idx = min(b, a + int((t - T_A) * 4)); phase = "B"
         else: idx = n - 1; phase = "C"
         fr = clip[idx]; im = backdrop(fr, idx); im.paste(fr, (0, cy)); badge(im)
@@ -141,18 +144,19 @@ def episode(name, preview=False):
             paste_pop(im, epl, 190, t); paste_pop(im, hook, 245, t - 0.05)
             cur = [s for s in subs if s[0] <= idx]
             if cur:
-                s = cur[-1]; L = text_block(s[1], 80); paste_pop(im, L, cy + ch + 40, t - s[0] / 8)
+                s = cur[-1]; L = text_block(s[1], 96); paste_pop(im, L, cy + ch + 40, t - s[0] / sp)
         elif phase == "B":
             tb = t - T_A; paste_pop(im, replay, 250, tb); paste_pop(im, slower, 340, tb - 0.1)
         else:
             tc = t - T_A - T_B; dk = Image.new("RGBA", (W, H), (0, 0, 0, int(150 * min(1, tc / 0.25)))); im.paste(dk, (0, 0), dk); badge(im)
-            paste_pop(im, ask, 560, tc); paste_pop(im, text_block([[["Comment below", "g"]]], 50, stroke=5), 560 + ask.height + 10, tc - 0.2)
-            paste_pop(im, tag1, 1330, tc - 0.45); paste_pop(im, tag2, 1410, tc - 0.6)
+            paste_pop(im, ask, 470, tc); paste_pop(im, text_block([[["Comment below", "g"]]], 50, stroke=5), 470 + ask.height + 6, tc - 0.2)
+            paste_pop(im, tag0, 1430, tc - 0.5); paste_pop(im, tag1, 1505, tc - 0.62)
+            paste_pop(im, tag2, 1640, tc - 0.75); paste_pop(im, tag3, 1710, tc - 0.85)
         return im
 
     if preview:
         os.makedirs(D + "/preview", exist_ok=True)
-        ts = [0.3, T_A * 0.6, T_A - 0.1, T_A + T_B * 0.5, dur - 0.3]
+        ts = [0.3, T_A * 0.6, T_A - 0.1] + ([T_A + T_B * 0.5] if rp else []) + [dur - 0.3]
         ims = [frame(t).resize((270, 480)) for t in ts]; sheet = Image.new("RGB", (270 * len(ims), 480))
         for i, x in enumerate(ims): sheet.paste(x, (270 * i, 0))
         sheet.save(f"{D}/preview/blob-{name}.jpg", quality=80); print("preview", name, round(dur, 2)); return
@@ -167,8 +171,8 @@ def episode(name, preview=False):
         s = SFX[kind](); i0 = int(at * SR); e = min(len(mix), i0 + len(s))
         if i0 < len(mix): mix[i0:e] += s[: e - i0]
     for f, kind in ep["sfx"]:
-        hit(f / 8, kind)
-        if a <= f <= b: hit(T_A + (f - a) / 4, kind)
+        hit(f / sp, kind)
+        if rp and a <= f <= b: hit(T_A + (f - a) / 4, kind)
     hit(T_A + T_B, "ding")
     fo = int(0.6 * SR); mix[-fo:] *= np.linspace(1, 0, fo); mix = np.clip(mix, -1, 1)
     wv = f"{D}/r/blob-{name}.wav"
