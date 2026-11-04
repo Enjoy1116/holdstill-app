@@ -130,10 +130,12 @@ def render(name, preview=False):
     p = None
     if not preview:
         make_audio(name, v, total)
-        p = subprocess.Popen([FF, "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-                              "-i", f"{OUT}/_spot_{name}.wav", "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p",
-                              "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out], stdin=subprocess.PIPE)
-    shots = []
+        JD = f"/home/user/spotjpg_{name}"; os.makedirs(JD, exist_ok=True)
+        for f_ in os.listdir(JD): os.remove(os.path.join(JD, f_))
+        p = None; enc = [FF, "-y", "-v", "error", "-framerate", str(FPS), "-i", JD + "/%04d.jpg",
+                              "-i", f"{OUT}/_spot_{name}.wav", "-c:v", "libx264", "-threads", "1", "-preset", "faster", "-crf", "21", "-pix_fmt", "yuv420p",
+                              "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out]
+    shots = []; fi = 0
     for seg, k, n, t0 in frames:
         im = BASE.copy(); d = ImageDraw.Draw(im, "RGBA")
         if seg in ("play1", "play2", "hook"):
@@ -171,12 +173,15 @@ def render(name, preview=False):
             ctext(d, 1420, "FOLLOW FOR MORE", 70, YEL, 900, 0)
         badge(d, im)
         if preview: shots.append(im.resize((270, 480)))
-        else: p.stdin.write(im.tobytes())
+        else: im.save(f"{JD}/{fi:04d}.jpg", quality=92); fi += 1
     if preview:
         sheet = Image.new("RGB", (270 * len(shots), 480))
         for i, s in enumerate(shots): sheet.paste(s, (270 * i, 0))
         sheet.save(f"{OUT}/spot_{name}_preview.jpg"); print("preview"); return
-    p.stdin.close(); p.wait(); os.remove(f"{OUT}/_spot_{name}.wav"); print("spot", name, total / FPS, out)
+    vv = f"{JD}_v.mp4"
+    subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", JD + "/%04d.jpg", "-threads", "1", "-c:v", "libx264", "-crf", "21", "-pix_fmt", "yuv420p", vv], check=True)
+    subprocess.run([FF, "-y", "-loglevel", "error", "-i", vv, "-i", f"{OUT}/_spot_{name}.wav", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out], check=True)
+    os.remove(vv); os.remove(f"{OUT}/_spot_{name}.wav"); print("spot", name, total / FPS, out)
 
 def make_audio(name, v, total):
     sr = 24000; n = int(total / FPS * sr) + sr; a = np.zeros(n, np.float32)
