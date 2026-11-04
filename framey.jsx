@@ -719,15 +719,19 @@ function TitleMaker({ fps, hasSel, onAdd, onClose }) {
 }
 
 // ================= Song search (30-second song clips from Apple Music) =================
-function MusicSearch({ onPick, onSkip, onClose }) {
+// Tap Play (or a song's picture) to hear it while a mini copy of your movie plays along.
+function MusicSearch({ frames = [], fps = 8, onPick, onSkip, onClose }) {
   const [q, setQ] = useState("");
   const [res, setRes] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [playing, setPlaying] = useState(null);
+  const [now, setNow] = useState(null); // the song playing: { id, title, artist, art, pick }
+  const [prog, setProg] = useState(0);
+  const [fi, setFi] = useState(0);
   const [taking, setTaking] = useState(null);
-  const au = useRef(), inp = useRef();
-  useEffect(() => { const t = setTimeout(() => inp.current && inp.current.focus(), 60); return () => { clearTimeout(t); if (au.current) au.current.pause(); }; }, []);
+  const au = useRef(), inp = useRef(), builtUrl = useRef({});
+  const seq = useMemo(() => buildSeq(frames, false), [frames]);
+  useEffect(() => { const t = setTimeout(() => inp.current && inp.current.focus(), 60); return () => { clearTimeout(t); if (au.current) au.current.pause(); Object.values(builtUrl.current).forEach((u) => URL.revokeObjectURL(u)); }; }, []);
   useEffect(() => {
     const term = q.trim();
     if (term.length < 2) { setRes(null); setErr(""); setBusy(false); return; }
@@ -742,14 +746,27 @@ function MusicSearch({ onPick, onSkip, onClose }) {
     }, 350);
     return () => { dead = true; clearTimeout(t); };
   }, [q]);
-  const listen = (s) => {
+  // the mini movie runs while a song plays
+  useEffect(() => {
+    if (!now || !seq.length) return;
+    setFi(0);
+    const t = setInterval(() => setFi((n) => (n + 1) % seq.length), 1000 / fps);
+    return () => clearInterval(t);
+  }, [now && now.id, seq.length, fps]);
+  const stop = () => { if (au.current) au.current.pause(); setNow(null); setProg(0); };
+  const play = (song, url) => {
     const a = au.current;
     if (!a) return;
-    if (playing === s.trackId) { a.pause(); setPlaying(null); return; }
-    a.src = s.previewUrl; a.play().catch(() => {}); setPlaying(s.trackId);
+    if (now && now.id === song.id) { stop(); return; }
+    a.src = url; a.currentTime = 0; setProg(0);
+    a.play().then(() => setNow(song)).catch(() => { setErr("Couldn't play that song. Try another one."); setNow(null); });
+  };
+  const playBuilt = (k, v) => {
+    const u = builtUrl.current[k] || (builtUrl.current[k] = URL.createObjectURL(synthTrack(k)));
+    play({ id: "b:" + k, title: v, artist: "Built into Framey", art: null, pick: () => onPick(synthTrack(k), `${v} (built-in)`) }, u);
   };
   const use = async (s) => {
-    setTaking(s.trackId); if (au.current) au.current.pause(); setPlaying(null);
+    setTaking(s.trackId); stop();
     try {
       const r = await fetch(s.previewUrl);
       if (!r.ok) throw new Error("http");
@@ -758,9 +775,14 @@ function MusicSearch({ onPick, onSkip, onClose }) {
     } catch { setErr("Couldn't get that song. Try another one."); }
     setTaking(null);
   };
+  const songOf = (s) => ({ id: s.trackId, title: s.trackName, artist: s.artistName, art: s.artworkUrl100, pick: () => use(s) });
+  const PlayIcon = ({ on }) => on
+    ? <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" /><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" /></svg>
+    : <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>;
+  const frame = now && seq.length ? frames[seq[fi % seq.length]] : null;
   return (
     <div className="over" role="dialog" aria-label="Find a song">
-      <audio ref={au} onEnded={() => setPlaying(null)} />
+      <audio ref={au} loop playsInline onTimeUpdate={(e) => { const a = e.currentTarget; setProg(a.duration ? a.currentTime / a.duration : 0); }} />
       <div className="bar">
         <button className="pill" onClick={onClose}>Back</button>
         <strong className="otitle">Find a song</strong>
@@ -770,31 +792,56 @@ function MusicSearch({ onPick, onSkip, onClose }) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="2.4" /><path d="m15.5 15.5 5 5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg>
         <input ref={inp} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search songs or artists" aria-label="Search songs or artists" enterKeyHint="search" autoComplete="off" />
       </label>
+      {now && (
+        <div className="nowp" role="status">
+          {frame ? <img className="nowmov" src={frame.src} alt="Your movie playing with this song" style={{ aspectRatio: `${W} / ${H}` }} /> : null}
+          <div className="nowinfo">
+            <span className="sub">Your movie with</span>
+            <b>{now.title}</b>
+            <span className="sub">{now.artist}</span>
+            <div className="eq" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+            <div className="nowbar"><i style={{ width: `${Math.round(prog * 100)}%` }} /></div>
+            <div className="row">
+              <button className="pill" onClick={stop}>Stop</button>
+              <button className="pill go" disabled={taking !== null} onClick={now.pick}>Use this song</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="slist">
         {err && <p className="sub">{err}</p>}
         {res === null && (
           <>
-            <p className="sub">Type a song or an artist, tap Play to listen, then Use. Each song is a 30-second clip that repeats if your movie is longer.</p>
+            <p className="sub">Type a song or an artist, then tap Play to hear it with your movie. Each song is a 30-second clip that repeats if your movie is longer.</p>
             <strong className="sh">Framey's own songs</strong>
-            {Object.entries(TRACKS).map(([k, v]) => (
-              <div className="srow" key={k}>
-                <div className="sart" aria-hidden="true">♪</div>
-                <div className="sinfo"><b>{v}</b><span>Built into Framey</span></div>
-                <button className="pill go" onClick={() => onPick(synthTrack(k), `${v} (built-in)`)}>Use</button>
-              </div>
-            ))}
+            {Object.entries(TRACKS).map(([k, v]) => {
+              const on = now && now.id === "b:" + k;
+              return (
+                <div className={"srow" + (on ? " on" : "")} key={k}>
+                  <button className="sart" aria-label={`${on ? "Stop" : "Play"} ${v}`} onClick={() => playBuilt(k, v)}><PlayIcon on={on} /></button>
+                  <div className="sinfo"><b>{v}</b><span>Built into Framey</span></div>
+                  <button className="pill" aria-pressed={!!on} onClick={() => playBuilt(k, v)}>{on ? "Stop" : "Play"}</button>
+                  <button className="pill go" onClick={() => { stop(); onPick(synthTrack(k), `${v} (built-in)`); }}>Use</button>
+                </div>
+              );
+            })}
           </>
         )}
         {busy && <p className="sub">Searching…</p>}
         {!busy && res && !res.length && !err && <p className="sub">No songs found. Try different words.</p>}
-        {!busy && res && res.map((s) => (
-          <div className="srow" key={s.trackId}>
-            <img className="sart" src={s.artworkUrl100} alt="" />
-            <div className="sinfo"><b>{s.trackName}</b><span>{s.artistName}</span></div>
-            <button className="pill" aria-pressed={playing === s.trackId} aria-label={`${playing === s.trackId ? "Stop" : "Play"} ${s.trackName}`} onClick={() => listen(s)}>{playing === s.trackId ? "Stop" : "Play"}</button>
-            <button className="pill go" disabled={taking !== null} aria-label={`Use ${s.trackName}`} onClick={() => use(s)}>{taking === s.trackId ? "…" : "Use"}</button>
-          </div>
-        ))}
+        {!busy && res && res.map((s) => {
+          const on = now && now.id === s.trackId;
+          return (
+            <div className={"srow" + (on ? " on" : "")} key={s.trackId}>
+              <button className="sart pic" aria-label={`${on ? "Stop" : "Play"} ${s.trackName}`} onClick={() => play(songOf(s), s.previewUrl)}>
+                <img src={s.artworkUrl100} alt="" /><span><PlayIcon on={on} /></span>
+              </button>
+              <div className="sinfo"><b>{s.trackName}</b><span>{s.artistName}</span></div>
+              <button className="pill" aria-pressed={!!on} aria-label={`${on ? "Stop" : "Play"} ${s.trackName}`} onClick={() => play(songOf(s), s.previewUrl)}>{on ? "Stop" : "Play"}</button>
+              <button className="pill go" disabled={taking !== null} aria-label={`Use ${s.trackName}`} onClick={() => use(s)}>{taking === s.trackId ? "…" : "Use"}</button>
+            </div>
+          );
+        })}
       </div>
       <p className="sub fine">Song clips are previews from Apple Music. They're fine in movies you keep, but if you post a video online, the site may mute a song you don't own the rights to.</p>
     </div>
@@ -1351,7 +1398,7 @@ function Studio({ project, onBack, onMeta }) {
         </div>
       )}
       {searching && (
-        <MusicSearch onClose={() => setSearching(null)}
+        <MusicSearch frames={frames} fps={fps} onClose={() => setSearching(null)}
           onSkip={searching === "create" ? () => { setSearching(null); createVideo(); } : null}
           onPick={(b, name) => { const go = searching === "create"; setMusic(b); setMusicName(name); setSearching(null); setMsg(`Music added: ${name}`); if (go) createVideo({ music: b }); }} />
       )}
@@ -1551,6 +1598,23 @@ const css = `
 .hs .sinfo span{color:var(--dim);font-size:.85rem}
 .hs .srow .pill{min-height:40px;padding:0 14px;flex:0 0 auto}
 .hs .fine{font-size:.75rem;margin:0}
+.hs .srow.on{outline:2px solid var(--clay)}
+.hs button.sart{border:0;padding:0;cursor:pointer;position:relative;overflow:hidden}
+.hs button.sart img{width:100%;height:100%;object-fit:cover;display:block}
+.hs button.sart.pic span{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.35);color:#fff}
+.hs .nowp{display:flex;gap:12px;align-items:stretch;padding:10px;border-radius:16px;background:#1C1C1E;border:2px solid var(--clay)}
+.hs .nowmov{height:150px;width:auto;max-width:45%;object-fit:cover;border-radius:10px;flex:0 0 auto;background:#000}
+.hs .nowinfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.hs .nowinfo b{font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs .nowinfo .sub{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs .nowinfo .row{margin-top:4px}
+.hs .nowinfo .pill{min-height:40px;padding:0 12px}
+.hs .nowbar{height:5px;border-radius:3px;background:#3A3A3C;overflow:hidden}
+.hs .nowbar i{display:block;height:100%;background:var(--clay)}
+.hs .eq{display:flex;gap:3px;align-items:flex-end;height:18px}
+.hs .eq i{width:4px;background:var(--clay);border-radius:2px;animation:eqb .9s ease-in-out infinite}
+.hs .eq i:nth-child(2){animation-delay:-.2s}.hs .eq i:nth-child(3){animation-delay:-.45s}.hs .eq i:nth-child(4){animation-delay:-.1s}.hs .eq i:nth-child(5){animation-delay:-.6s}
+@keyframes eqb{0%,100%{height:4px}50%{height:18px}}
 .hs .over .bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .hs .otitle{font-size:1.05rem;color:var(--clay)}
 .hs .over .pv{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;container-type:size}
@@ -1588,7 +1652,7 @@ const css = `
 .hs .tipcard p{margin:0}.hs .tipcard b{color:var(--clay)}
 .hs button.swatch{width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;border:3px solid #3A3A3C}
 .hs button.swatch[aria-pressed=true]{border-color:#fff;box-shadow:0 0 0 2px var(--clay)}
-@media (prefers-reduced-motion:reduce){.hs .shutter i,.hs .prog i{transition:none}.hs .flash{animation-duration:.01s}.hs .count .ring{animation:none}}
+@media (prefers-reduced-motion:reduce){.hs .shutter i,.hs .prog i{transition:none}.hs .flash{animation-duration:.01s}.hs .count .ring,.hs .eq i{animation:none}}
 `;
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
