@@ -3,14 +3,14 @@ import sys, glob
 WHICH3 = sys.argv[1] if len(sys.argv) > 1 else "all"
 sys.argv = [sys.argv[0], "none"]
 from vids import *  # helpers, assets, end card; scene_frames adds the Framey badge
-import cool
+import cool, cool2
 
 CF = D + "/cool"; os.makedirs(CF, exist_ok=True)
 
 def clip(name):
     fs = sorted(glob.glob(f"{CF}/{name}_*.jpg"))
     if not fs:
-        fr = cool.blocks(FB) if name == "blocks" else cool.dominoes()
+        fr = cool.blocks(FB) if name == "blocks" else cool.dominoes() if name == "dominoes" else getattr(cool2, name)()
         for i, im in enumerate(fr): im.save(f"{CF}/{name}_{i:03d}.jpg", quality=90)
         del fr; fs = sorted(glob.glob(f"{CF}/{name}_*.jpg"))
     return fs
@@ -58,3 +58,7 @@ if WHICH3 in ("blocks", "all"):
     want("blocks", [[("Want to make", WHITE)], [("stop-motion", OR), (" like this?", WHITE)]])
 if WHICH3 in ("dominoes", "all"):
     want("dominoes", [[("Want to make", WHITE)], [("stop-motion", OR), (" like this?", WHITE)]])
+
+for _nm in cool2.SCENES:
+    if WHICH3 in (_nm, "all"):
+        want(_nm, [[("Want to make", WHITE)], [("stop-motion", OR), (" like this?", WHITE)]])
