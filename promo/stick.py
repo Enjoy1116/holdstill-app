@@ -12,7 +12,9 @@ V = os.environ.get("FRAMEY_DIR", "/mnt/files/v")
 D = os.environ.get("WORK", "/home/user/work"); VOICE = os.environ.get("VOICE", V + "/voice")
 OUT = os.environ.get("OUTDIR", "/home/user/vout"); FF = os.environ.get("FFMPEG", "ffmpeg")
 FB = V + "/Inter.ttf"; ICON = V + "/icon.png"
-W, H, FPS, DRAW_FPS, SR = 1080, 1920, 30, 12, 24000
+W, H, FPS, SR = 1080, 1920, 30, 24000
+# quality knobs: smoother drawing (24 fps), steadier line, closer camera so the characters fill the frame
+DRAW_FPS = int(os.environ.get("DRAW_FPS", 24)); JIT = float(os.environ.get("JITTER", 1.5)); CAM = float(os.environ.get("CAM_ZOOM", 1.0))
 OR = (254, 97, 0); YEL = (255, 214, 10); WHITE = (255, 255, 255); GREY = (200, 200, 210); RED = (228, 40, 40)
 CHALK = (238, 238, 232); ZOMB = (130, 214, 96)
 EPS = json.load(open(V + "/stick.json"))
@@ -215,7 +217,7 @@ def sc_title(im, pen, u, st, tick):
 
 def sc_alert(im, pen, u, st, tick):
     d = sky(im, (18, 6, 8), (40, 10, 12))
-    bz = 10 if (st.get("buzz", True) and u < 1.6 and tick % 2 == 0) else 0; jx = pen.r.uniform(-bz, bz)
+    bz = 10 if (st.get("buzz", True) and u < 1.6 and int(tick) % 2 == 0) else 0; jx = pen.r.uniform(-bz, bz)
     x0, y0, x1, y1 = 260 + jx, 500, 820 + jx, 1250
     d.rounded_rectangle([x0 - 30, y0 - 30, x1 + 30, y1 + 30], 90, fill=(60, 10, 10))
     d.rounded_rectangle([x0, y0, x1, y1], 70, fill=(22, 22, 26), outline=(200, 200, 210), width=10)
@@ -259,7 +261,7 @@ def sc_room(im, pen, u, st, tick):
         dark = Image.new("RGBA", (W, H), (0, 0, 10, 175)); im.paste(dark, (0, 0), dark)
 
 def sc_door(im, pen, u, st, tick):
-    d = sky(im, (20, 18, 26), (30, 26, 34)); kn = st.get("knock") and (tick % 8 < 2) and u > 0.2
+    d = sky(im, (20, 18, 26), (30, 26, 34)); kn = st.get("knock") and (int(tick) % 8 < 2) and u > 0.2
     jx = pen.r.uniform(-9, 9) if kn or st.get("rattle") else 0
     d.rectangle([0, 1560, W, H], fill=(36, 30, 30))
     pen.rect(300 + jx, 430, 780 + jx, 1560, (170, 130, 90), 14, fill=(84, 56, 38)); pen.rect(360 + jx, 520, 720 + jx, 940, (140, 104, 70), 8); pen.rect(360 + jx, 1020, 720 + jx, 1460, (140, 104, 70), 8)
@@ -273,7 +275,7 @@ def sc_door(im, pen, u, st, tick):
             f = F(70); d.text((tx - 80, ty), "KNOCK", font=f, fill=YEL, stroke_width=6, stroke_fill=(0, 0, 0))
 
 def sc_hallway(im, pen, u, st, tick):
-    d = sky(im, (14, 14, 18), (24, 22, 28)); fl = (tick % 7 in (0, 3)) and st.get("flicker", True)
+    d = sky(im, (14, 14, 18), (24, 22, 28)); fl = (int(tick) % 7 in (0, 3)) and st.get("flicker", True)
     vx, vy = W / 2, 820
     for a, b in (((0, 0), (vx - 120, vy - 140)), ((W, 0), (vx + 120, vy - 140)), ((0, H), (vx - 120, vy + 220)), ((W, H), (vx + 120, vy + 220))):
         pen.line([a, b], (90, 90, 110), 8)
@@ -321,7 +323,7 @@ def sc_roof(im, pen, u, st, tick):
     else: stick(pen, 380, 1380, 300, pose, CHALK, face=1, w=12, expr=ex_, look=1 if st.get("heli") else 0.4)
     if st.get("rattle"):
         jx = pen.r.uniform(-10, 10); pen.rect(60 + jx, 980, 260 + jx, 1380, (170, 130, 90), 12, fill=(84, 56, 38))
-        if tick % 4 < 2: pen.d.text((40, 900), "BANG", font=F(70), fill=YEL, stroke_width=6, stroke_fill=(0, 0, 0))
+        if int(tick) % 4 < 2: pen.d.text((40, 900), "BANG", font=F(70), fill=YEL, stroke_width=6, stroke_fill=(0, 0, 0))
 
 def sc_choice(im, pen, u, st, tick):
     sky(im, (12, 10, 24), (30, 16, 30))
@@ -439,8 +441,11 @@ def episode(name, preview=False):
         key = (si, tick)
         if key not in scene_cache:
             if len(scene_cache) > 3: scene_cache.clear()
-            s = shots[si]; im = Image.new("RGB", (W, H)); pen = Pen(ImageDraw.Draw(im, "RGBA"), seed=si * 1000 + tick, j=2.6); pen.im = im
-            SCENES[s["scene"]](im, pen, tick / DRAW_FPS - s["_t0"], s, tick)
+            s = shots[si]; im = Image.new("RGB", (W, H)); pen = Pen(ImageDraw.Draw(im, "RGBA"), seed=si * 1000 + (tick // 2 if DRAW_FPS > 12 else tick), j=JIT); pen.im = im
+            SCENES[s["scene"]](im, pen, tick / DRAW_FPS - s["_t0"], s, tick * 12 / DRAW_FPS)
+            if CAM > 1.0 and s["scene"] != "choice":
+                cw, ch = int(W / CAM), int(H / CAM); x0 = (W - cw) // 2; y0 = int((H - ch) * 0.62)
+                im = im.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, H), Image.LANCZOS)
             scene_cache[key] = im
         return scene_cache[key].copy()
 
@@ -458,8 +463,8 @@ def episode(name, preview=False):
             bd.rounded_rectangle([0, 0, 439, 77], 39, fill=(0, 0, 0, 210)); bd.rounded_rectangle([8, 8, 8 + max(24, int(424 * c / 100)), 69], 31, fill=col + (255,))
             bd.text((220, 39), f"SURVIVAL {c}%", font=F(42), fill=WHITE, anchor="mm", stroke_width=4, stroke_fill=(0, 0, 0))
             im.paste(bar, (40, 258), bar)
-        if ep.get("hook") and not s.get("rule") and s["scene"] not in ("choice", "title") and not s.get("title_overlay"):
-            paste_c(im, text_line([(ep["hook"].upper(), YEL)], 56, 6), 1530, 1.0)
+        if ep.get("hook") and (s["scene"] == "title" or s.get("title_overlay")) and u > 0.6:
+            paste_c(im, text_line([(ep["hook"].upper(), YEL)], 56, 6), 1530, spring(u - 0.6))
         if s["scene"] == "title" or s.get("title_overlay"):
             paste_c(im, text_line([("STICKMAN", WHITE)], 120), 520, spring(u)); paste_c(im, text_line([("SURVIVAL", RED)], 132), 660, spring(u - 0.12))
             paste_c(im, text_line([(ep["title"].upper(), YEL)], 74), 820, spring(u - 0.3))
@@ -517,10 +522,10 @@ def episode(name, preview=False):
         sheet.save(f"{D}/preview/stick-{name}.jpg", quality=80); print("preview", name, round(dur, 1), "s"); return
 
     d = f"{D}/r/stick-{name}"; shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
-    for i in range(int(dur * FPS)): frame(i / FPS).save(f"{d}/{i:04d}.jpg", quality=88)
+    for i in range(int(dur * FPS)): frame(i / FPS).save(f"{d}/{i:04d}.jpg", quality=96, subsampling=0)
     v = f"{D}/r/stick-{name}_v.mp4"
-    subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{d}/%04d.jpg", "-threads", "1", "-c:v", "libx264", "-crf", "21",
-                    "-preset", "veryfast", "-pix_fmt", "yuv420p", v], check=True)
+    subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{d}/%04d.jpg", "-threads", "1", "-c:v", "libx264", "-crf", "16", "-tune", "animation",
+                    "-preset", "medium", "-profile:v", "high", "-maxrate", "12M", "-bufsize", "24M", "-g", "60", "-pix_fmt", "yuv420p", v], check=True)
     mix = ambience(dur)
     def put(at, snd, gain=1.0):
         i0 = int(at * SR); e = min(len(mix), i0 + len(snd))
@@ -534,8 +539,8 @@ def episode(name, preview=False):
     with wave.open(wv, "wb") as o:
         o.setnchannels(1); o.setsampwidth(2); o.setframerate(SR); o.writeframes((mix * 32767).astype(np.int16).tobytes())
     os.makedirs(OUT, exist_ok=True); out = f"{OUT}/framey-stick-{name}.mp4"; tmp = out[:-4] + ".tmp.mp4"
-    subprocess.run([FF, "-y", "-loglevel", "error", "-i", v, "-i", wv, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k",
-                    "-ar", "44100", "-shortest", "-movflags", "+faststart", tmp], check=True)
+    subprocess.run([FF, "-y", "-loglevel", "error", "-i", v, "-i", wv, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k",
+                    "-ar", "48000", "-shortest", "-movflags", "+faststart", tmp], check=True)
     os.replace(tmp, out); shutil.rmtree(d, ignore_errors=True); print("stick", name, round(dur, 1), out)
 
 
