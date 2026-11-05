@@ -109,6 +109,62 @@ VARIANTS = {
                    caption="Stickman walks... but 1 frame is WRONG 🧍 Did you see it? Comment the second 👇 Animated frame by frame like you can in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #stickman #animation #framey"),
 }
 
+
+def pendulum(d, t, wrong):
+    n = 9; top = 560; d.line([120, top, W - 120, top], fill=(200, 200, 220), width=10)
+    p_out = None
+    for i in range(n):
+        x0 = 180 + i * (W - 360) / (n - 1); L = 700 - i * 40
+        ang = 0.28 * math.sin(2 * math.pi * t * (0.5 + i * 0.02))
+        bx, by = x0 + L * math.sin(ang), top + L * math.cos(ang)
+        d.line([x0, top, bx, by], fill=(230, 230, 240), width=5)
+        c = (255, 255, 255) if (wrong and i == 6) else PAL[i % len(PAL)]
+        if i == 6: p_out = (bx, by)
+        d.ellipse([bx - 44, by - 44, bx + 44, by + 44], fill=c, outline=(0, 0, 0), width=6)
+        d.ellipse([bx - 22, by - 30, bx - 4, by - 12], fill=(255, 255, 255))
+    return p_out
+
+def orbit(d, t, wrong):
+    cx, cy = W / 2, 1000
+    for r in (230, 360, 480): d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(80, 80, 120), width=4)
+    d.ellipse([cx - 110, cy - 110, cx + 110, cy + 110], fill=(255, 196, 40), outline=(0, 0, 0), width=8)
+    for k in range(14):
+        a = k * 2 * math.pi / 14 + t * 0.3; d.line([cx + 125 * math.cos(a), cy + 125 * math.sin(a), cx + 150 * math.cos(a), cy + 150 * math.sin(a)], fill=(255, 220, 90), width=8)
+    out = None
+    for r, sp, sz, col in ((230, 1.6, 34, PAL[4]), (360, 1.0, 50, PAL[0]), (480, 0.65, 42, PAL[3])):
+        a = t * sp; px, py = cx + r * math.cos(a), cy + r * math.sin(a)
+        d.ellipse([px - sz, py - sz, px + sz, py + sz], fill=col, outline=(0, 0, 0), width=6)
+        if r == 360:
+            out = (px, py)
+            if not wrong:
+                ma = t * 4.2; mx, my = px + 100 * math.cos(ma), py + 100 * math.sin(ma)
+                d.ellipse([mx - 26, my - 26, mx + 26, my + 26], fill=(220, 220, 230), outline=(0, 0, 0), width=4)
+    return out
+
+def clock(d, t, wrong):
+    cx, cy, R = W / 2, 1000, 380
+    d.ellipse([cx - R - 24, cy - R - 24, cx + R + 24, cy + R + 24], fill=(255, 122, 26), outline=(0, 0, 0), width=10)
+    d.ellipse([cx - R, cy - R, cx + R, cy + R], fill=(250, 246, 236), outline=(0, 0, 0), width=8)
+    for k in range(12):
+        a = k * math.pi / 6; l = 50 if k % 3 == 0 else 26
+        d.line([cx + (R - 20) * math.sin(a), cy - (R - 20) * math.cos(a), cx + (R - 20 - l) * math.sin(a), cy - (R - 20 - l) * math.cos(a)], fill=(30, 30, 40), width=12 if k % 3 == 0 else 6)
+    m = t * 2 * math.pi / 3.0
+    h = m / 12
+    if wrong: m += math.pi
+    d.line([cx, cy, cx + 210 * math.sin(h), cy - 210 * math.cos(h)], fill=(30, 30, 40), width=22)
+    d.line([cx, cy, cx + 320 * math.sin(m), cy - 320 * math.cos(m)], fill=(238, 52, 64), width=14)
+    d.ellipse([cx - 26, cy - 26, cx + 26, cy + 26], fill=(30, 30, 40))
+    return (cx + 230 * math.sin(m), cy - 230 * math.cos(m))
+
+VARIANTS.update({
+    "pendulum": dict(scene=pendulum, hook="1 FRAME IS WRONG", sub="Watch the pendulums...", reveal="Ball #7 turned WHITE!", wrong_at=4.1,
+                     caption="So satisfying... but 1 frame is WRONG 👀 Did you catch it? Comment the second you saw it 👇 Every frame drawn one by one, like in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #satisfying #animation #framey"),
+    "orbit": dict(scene=orbit, hook="1 FRAME IS WRONG", sub="Keep your eyes on the planets...", reveal="The moon disappeared!", wrong_at=3.6,
+                  caption="Planets spinning around the sun... but 1 frame is WRONG 🪐 Did you spot it? Comment the second 👇 Made frame by frame, like you can in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #space #animation #framey"),
+    "clock": dict(scene=clock, hook="1 FRAME IS WRONG", sub="Watch the clock...", reveal="The red hand jumped!", wrong_at=4.4,
+                  caption="Tick tock... 1 frame is WRONG ⏰ Did you see it the first time? Be honest 👇 Every frame drawn one by one, like in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #animation #spotthedifference #framey"),
+})
+
 PLAY = 6.0; NW = 3
 
 def make_frames(v):
