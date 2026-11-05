@@ -29,9 +29,9 @@ except Exception:
     lines = [""] * n; wts = np.ones(n)
 voiced = np.where(~quiet)[0]; v0, v1 = voiced[0], voiced[-1]
 exp = v0 + (v1 - v0) * np.cumsum(wts)[:-1] / wts.sum()
-span = (v1 - v0) / n
+span = (v1 - v0) / n; W_POS = float(os.environ.get('W_POS', '15'))
 R = len(runs); pos = np.array([r[0] for r in runs], float); ln = np.array([r[1] for r in runs], float)
-def cost(k, r): return ((pos[r] - exp[k]) / span) ** 2 * 4.0 - np.log(ln[r])
+def cost(k, r): return ((pos[r] - exp[k]) / span) ** 2 * W_POS - np.log(ln[r])
 INF = 1e18; D = np.full((n - 1, R), INF); B = np.zeros((n - 1, R), int)
 for r in range(R): D[0, r] = cost(0, r)
 for k in range(1, n - 1):
@@ -42,6 +42,9 @@ for k in range(1, n - 1):
 r = int(np.argmin(D[n - 2])); cuts = [r]
 for k in range(n - 2, 0, -1): r = B[k, r]; cuts.append(r)
 cuts = sorted(cuts)
+sl = np.sort(ln)[::-1]
+if R >= n and sl[n - 2] >= 1.2 * sl[n - 1]:
+    cuts = sorted(np.argsort(-ln)[: n - 1])
 bounds = [0] + [int(pos[c]) * win for c in cuts] + [len(a)]
 os.makedirs(out, exist_ok=True)
 for k in range(n):
