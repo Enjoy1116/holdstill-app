@@ -943,5 +943,409 @@
    }
   ],
   "caption": "You made it out... but wait, was that your NEIGHBOR? 🚁🧟 STICKMAN SURVIVAL — Season 2 finale, Part 8. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Should we make SEASON 3? Comment YES or NO 👇 and follow! #stickman #animation #zombie #story #framey"
+ },
+ "s3text": {
+  "part": 9,
+  "title": "The Text",
+  "hook": "Season 3 is here",
+  "shots": [
+   {
+    "scene": "roof",
+    "say": "You voted yes. So here we go. Season three.",
+    "key": "three",
+    "title_overlay": true,
+    "heli": "hover",
+    "rope": true,
+    "you": "hang",
+    "chance": 80,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "You climb into the helicopter. You're safe. For now.",
+    "key": "safe",
+    "heli": "hover",
+    "clock": "12:51",
+    "chance": 85,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "Then your phone buzzes. A text, from your neighbor.",
+    "key": "neighbor",
+    "clock": "12:52",
+    "red": false,
+    "screen": [
+     "NEW MESSAGE",
+     "From: Neighbor",
+     "It's me!"
+    ],
+    "sfx": [
+     "buzz"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "It says: I'm not a zombie. Come back and get me.",
+    "key": "zombie",
+    "clock": "12:52",
+    "red": false,
+    "screen": [
+     "NEW MESSAGE",
+     "I'm NOT a zombie.",
+     "Come get me!"
+    ],
+    "chance": 70
+   },
+   {
+    "scene": "window",
+    "say": "Down below, he's still dancing with them. Is he telling the truth?",
+    "key": "truth",
+    "dance": true,
+    "zombies": 5,
+    "clock": "12:53",
+    "chance": 60
+   },
+   {
+    "scene": "roof",
+    "say": "The pilot shakes her head. We only have fuel for one trip.",
+    "key": "fuel",
+    "heli": "hover",
+    "you": "scared",
+    "clock": "12:53",
+    "rule": [
+     "RULE #3",
+     "DON'T TRUST EVERY TEXT"
+    ],
+    "chance": 50
+   },
+   {
+    "scene": "window",
+    "say": "Then every zombie stops dancing, and looks up at the helicopter.",
+    "key": "helicopter",
+    "turn": true,
+    "zombies": 5,
+    "clock": "12:54",
+    "chance": 35,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Do you go back for your neighbor, or fly away?",
+    "key": "back away",
+    "choice": [
+     "GO BACK FOR HIM",
+     "FLY AWAY"
+    ]
+   }
+  ],
+  "caption": "A text from your neighbor... but he was dancing with the zombies 📱🧟 STICKMAN SURVIVAL — Season 3, Part 9. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Go back (A) or fly away (B)? Comment 👇 and follow for Part 10. #stickman #animation #zombie #story #framey"
+ },
+ "s3door": {
+  "part": 10,
+  "title": "Going Back",
+  "hook": "Would you survive this?",
+  "shots": [
+   {
+    "scene": "alert",
+    "say": "If you picked B, you flew away, and never found out the truth.",
+    "key": "truth",
+    "title_overlay": true,
+    "screen": [
+     "GAME OVER",
+     "You'll never know"
+    ],
+    "chance": 0,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "But if you picked A, the helicopter turns around.",
+    "key": "around",
+    "heli": "arrive",
+    "clock": "12:56",
+    "chance": 40,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "It lands on your old roof. The engine is way too loud.",
+    "key": "loud",
+    "heli": "hover",
+    "you": "scared",
+    "clock": "12:57",
+    "chance": 35,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "The roof door is locked. Of course it is.",
+    "key": "locked",
+    "locked": true,
+    "rattle": true,
+    "clock": "12:57",
+    "chance": 30,
+    "sfx": [
+     "bang"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "Then, knock. Knock. From the inside.",
+    "key": "inside",
+    "knock": true,
+    "feet": true,
+    "clock": "12:58",
+    "chance": 25,
+    "sfx": [
+     "knock"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "A voice says: It's me. Open the door. Hurry.",
+    "key": "hurry",
+    "feet": true,
+    "clock": "12:58",
+    "rule": [
+     "RULE #2",
+     "NEVER OPEN THE DOOR"
+    ],
+    "chance": 20
+   },
+   {
+    "scene": "choice",
+    "say": "Do you open the door, or ask him something only your real neighbor would know?",
+    "key": "open ask",
+    "choice": [
+     "OPEN THE DOOR",
+     "ASK A QUESTION"
+    ]
+   }
+  ],
+  "caption": "Knock knock... from the INSIDE 🚪🧟 STICKMAN SURVIVAL — Season 3, Part 10. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Open the door (A) or ask a question (B)? Comment 👇 and follow for Part 11. #stickman #animation #zombie #story #framey"
+ },
+ "s3question": {
+  "part": 11,
+  "title": "The Question",
+  "hook": "Would you survive this?",
+  "shots": [
+   {
+    "scene": "alert",
+    "say": "If you picked A, you opened the door. It was not your neighbor.",
+    "key": "not",
+    "title_overlay": true,
+    "screen": [
+     "GAME OVER",
+     "Rule #2!"
+    ],
+    "chance": 0,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "But if you picked B, you ask: what's the name of my dog?",
+    "key": "dog",
+    "feet": true,
+    "clock": "12:59",
+    "chance": 25
+   },
+   {
+    "scene": "door",
+    "say": "Silence. Then: Biscuit. It's really him!",
+    "key": "Biscuit",
+    "feet": true,
+    "clock": "12:59",
+    "chance": 45,
+    "sfx": [
+     "ding"
+    ]
+   },
+   {
+    "scene": "hallway",
+    "say": "You open the door. Behind him, the hallway is full of zombies.",
+    "key": "full",
+    "flicker": true,
+    "zombie_far": true,
+    "clock": "1:00",
+    "chance": 35,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "stairs",
+    "say": "Run! Up the stairs! Two floors to go!",
+    "key": "run",
+    "floors": [
+     20,
+     21
+    ],
+    "below": true,
+    "clock": "1:00",
+    "chance": 45,
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "You both grab the rope. The helicopter starts to lift.",
+    "key": "lift",
+    "heli": "hover",
+    "rope": true,
+    "you": "hang",
+    "clock": "1:01",
+    "chance": 70,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "Then you hear barking. Biscuit is still inside!",
+    "key": "barking",
+    "heli": "hover",
+    "rope": true,
+    "you": "hang",
+    "clock": "1:01",
+    "chance": 60,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Do you wait for Biscuit, or take off right now?",
+    "key": "wait take",
+    "choice": [
+     "WAIT FOR BISCUIT",
+     "TAKE OFF NOW"
+    ]
+   }
+  ],
+  "caption": "Only your REAL neighbor would know the answer... 🐶🧟 STICKMAN SURVIVAL — Season 3, Part 11. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Wait for Biscuit (A) or take off now (B)? Comment 👇 and follow for Part 12. #stickman #animation #zombie #story #framey"
+ },
+ "s3finale": {
+  "part": 12,
+  "title": "Biscuit",
+  "hook": "Would you survive this?",
+  "next": "FOLLOW FOR SEASON 4",
+  "shots": [
+   {
+    "scene": "roof",
+    "say": "If you picked B, you took off. Your neighbor never talked to you again.",
+    "key": "again",
+    "title_overlay": true,
+    "heli": "hover",
+    "rope": true,
+    "you": "hang",
+    "chance": 40,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "But if you picked A, you wait. One second. Two seconds.",
+    "key": "seconds",
+    "rattle": true,
+    "clock": "1:02",
+    "chance": 30,
+    "sfx": [
+     "bang"
+    ]
+   },
+   {
+    "scene": "hallway",
+    "say": "Biscuit runs out of the dark, with something in his mouth.",
+    "key": "mouth",
+    "flicker": true,
+    "zombie_far": true,
+    "clock": "1:02",
+    "chance": 45,
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "It's the radio. And it's still playing music.",
+    "key": "music",
+    "red": false,
+    "screen": [
+     "RADIO",
+     "Now playing:",
+     "Zombie Dance Mix"
+    ],
+    "clock": "1:02",
+    "chance": 65,
+    "sfx": [
+     "ding"
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "Every zombie in the building starts dancing again.",
+    "key": "dancing",
+    "dance": true,
+    "zombies": 5,
+    "clock": "1:03",
+    "chance": 80
+   },
+   {
+    "scene": "roof",
+    "say": "Biscuit jumps. You catch him. Up, up, and away!",
+    "key": "away",
+    "heli": "hover",
+    "rope": true,
+    "you": "hang",
+    "clock": "1:03",
+    "chance": 95,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "Then your phone buzzes one last time.",
+    "key": "last",
+    "red": false,
+    "screen": [
+     "NEW MESSAGE",
+     "Season 4?",
+     "Reply YES or NO"
+    ],
+    "clock": "1:04",
+    "chance": 95,
+    "sfx": [
+     "buzz"
+    ]
+   },
+   {
+    "scene": "choice",
+    "say": "Should we make season four? Comment yes or no!",
+    "key": "yes no",
+    "choice": [
+     "YES, SEASON 4!",
+     "NO WAY"
+    ]
+   }
+  ],
+  "caption": "The dog saved everyone 🐶📻🧟 STICKMAN SURVIVAL — Season 3 finale, Part 12. Every frame drawn by hand in Framey, the stop-motion app. Want to make videos like this? Use Framey — coming soon! Should we make SEASON 4? Comment YES or NO 👇 and follow! #stickman #animation #zombie #story #framey"
  }
 }

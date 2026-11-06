@@ -453,7 +453,7 @@ def episode(name, preview=False):
         badge(im)
         if s.get("clock"):
             hh, mm = map(int, s["clock"].split(":")); tm = (hh % 12) * 60 + mm + int(u // 2) + (12 * 60 if hh == 12 else 0)
-            h2, m2 = divmod(tm % (24 * 60), 60); txt = f"{(h2 - 1) % 12 + 1}:{m2:02d} {'AM' if h2 >= 12 else 'PM'}"
+            h2, m2 = divmod(tm % (24 * 60), 60); txt = f"{(h2 - 1) % 12 + 1}:{m2:02d} {'AM' if (h2 >= 12 or h2 < 6) else 'PM'}"
             L = text_line([(txt, WHITE)], 44, 5); im.paste(L, (40, 190), L)
         L = text_line([("PART " + str(ep["part"]), YEL)], 40, 5); im.paste(L, (W - L.width - 40, 190), L)
         if s.get("_chance") is not None and s["scene"] != "choice":
@@ -525,7 +525,7 @@ def episode(name, preview=False):
     for i in range(int(dur * FPS)): frame(i / FPS).save(f"{d}/{i:04d}.jpg", quality=96, subsampling=0)
     v = f"{D}/r/stick-{name}_v.mp4"
     subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{d}/%04d.jpg", "-threads", "1", "-c:v", "libx264", "-crf", "16", "-tune", "animation",
-                    "-preset", "medium", "-profile:v", "high", "-maxrate", "12M", "-bufsize", "24M", "-g", "60", "-pix_fmt", "yuv420p", v], check=True)
+                    "-preset", "fast", "-x264-params", "rc-lookahead=8:sliced-threads=0", "-profile:v", "high", "-maxrate", "12M", "-bufsize", "24M", "-g", "60", "-pix_fmt", "yuv420p", v], check=True)
     mix = ambience(dur)
     def put(at, snd, gain=1.0):
         i0 = int(at * SR); e = min(len(mix), i0 + len(snd))
