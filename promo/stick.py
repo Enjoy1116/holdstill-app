@@ -14,7 +14,7 @@ OUT = os.environ.get("OUTDIR", "/home/user/vout"); FF = os.environ.get("FFMPEG",
 FB = V + "/Inter.ttf"; ICON = V + "/icon.png"
 W, H, FPS, SR = 1080, 1920, 30, 24000
 # quality knobs: smoother drawing (24 fps), steadier line, closer camera so the characters fill the frame
-DRAW_FPS = int(os.environ.get("DRAW_FPS", 24)); JIT = float(os.environ.get("JITTER", 1.5)); CAM = float(os.environ.get("CAM_ZOOM", 1.0))
+DRAW_FPS = int(os.environ.get("DRAW_FPS", 30)); JIT = float(os.environ.get("JITTER", 1.1)); CAM = float(os.environ.get("CAM_ZOOM", 1.0))
 OR = (254, 97, 0); YEL = (255, 214, 10); WHITE = (255, 255, 255); GREY = (200, 200, 210); RED = (228, 40, 40)
 CHALK = (238, 238, 232); ZOMB = (130, 214, 96)
 EPS = json.load(open(V + "/stick.json"))
@@ -199,8 +199,31 @@ def skyline(pen, y0, tick, lit=0.35, seed=4):
                 if r.random() < lit: pen.d.rectangle([wx, wy, wx + 18, wy + 24], fill=(255, 210, 110))
         x += bw + r.randint(4, 30)
 
+def stars(pen, tick, n=70, ymax=1100, seed=11):
+    r = random.Random(seed)
+    for i in range(n):
+        x, y, s0 = r.uniform(0, W), r.uniform(0, ymax), r.uniform(1.5, 4.5); tw = 0.55 + 0.45 * math.sin(tick * 0.35 + i * 1.7)
+        c = int(150 + 105 * tw); pen.d.ellipse([x - s0, y - s0, x + s0, y + s0], fill=(c, c, min(255, c + 20), int(255 * tw)))
+
 def moon(pen, x, y, r=70):
-    pen.d.ellipse([x - r * 1.8, y - r * 1.8, x + r * 1.8, y + r * 1.8], fill=(40, 40, 70)); pen.circle(x, y, r, (250, 245, 220), 8, fill=(240, 236, 210))
+    for k in range(7, 0, -1):
+        rr = r * (1 + 0.32 * k); pen.d.ellipse([x - rr, y - rr, x + rr, y + rr], fill=(200, 200, 255, 9 + 2 * (7 - k)))
+    pen.circle(x, y, r, (250, 245, 220), 8, fill=(240, 236, 210))
+    for cx_, cy_, cr in ((-0.3, -0.2, 0.18), (0.25, 0.15, 0.13), (-0.05, 0.35, 0.1)):
+        pen.d.ellipse([x + cx_ * r - cr * r, y + cy_ * r - cr * r, x + cx_ * r + cr * r, y + cy_ * r + cr * r], fill=(214, 208, 184))
+
+def fog(im, y0, y1, tick, col=(150, 150, 190), a=70):
+    g = Image.new("RGBA", (W, y1 - y0), (0, 0, 0, 0)); gd = ImageDraw.Draw(g)
+    for i in range(9):
+        x = (i * 190 + tick * (2 + i % 3)) % (W + 400) - 200; yy = (i * 53) % max(1, y1 - y0 - 60)
+        gd.ellipse([x - 220, yy, x + 220, yy + 90], fill=col + (a // 3,))
+    g = g.filter(ImageFilter.GaussianBlur(28)); im.paste(g, (0, y0), g)
+
+def dust(pen, tick, n=26, seed=3):
+    r = random.Random(seed)
+    for i in range(n):
+        x = (r.uniform(0, W) + tick * r.uniform(0.5, 2)) % W; y = (r.uniform(0, H) - tick * r.uniform(0.8, 2.5)) % H; s0 = r.uniform(2, 4)
+        pen.d.ellipse([x - s0, y - s0, x + s0, y + s0], fill=(255, 240, 200, 70))
 
 def zombie_line(pen, n, y, L, tick, x0, dx, turn=False, dance=False, seed=7):
     r = random.Random(seed)
@@ -211,11 +234,15 @@ def zombie_line(pen, n, y, L, tick, x0, dx, turn=False, dance=False, seed=7):
         else: stick(pen, x + (tick * 2.2) % 40, y, L, pose_walk(ph, True), ZOMB, face=1 if i % 2 else -1, w=9)
 
 def sc_title(im, pen, u, st, tick):
-    sky(im); moon(pen, 820, 380, 80); skyline(pen, 1500, tick, 0.25)
+    sky(im); stars(pen, tick); moon(pen, 820, 380, 80); skyline(pen, 1500, tick, 0.25)
     pen.d.rectangle([0, 1500, W, H], fill=(14, 12, 18)); pen.line([(0, 1500), (W, 1500)], (90, 90, 110), 6)
-    zombie_line(pen, 5, 1700, 150, tick, 90, 210)
+    zombie_line(pen, 5, 1700, 150, tick, 90, 210); fog(im, 1560, 1900, tick)
 
 def sc_alert(im, pen, u, st, tick):
+    if st.get("title_overlay") and not st.get("_sub"):
+        sub = Image.new("RGB", (W, H)); sp = Pen(ImageDraw.Draw(sub, "RGBA"), pen.r.random(), pen.j); sp.im = sub
+        sc_alert(sub, sp, u, dict(st, _sub=1), tick); sky(im, (18, 6, 8), (40, 10, 12))
+        ph = sub.crop((200, 440, 880, 1310)).resize((408, 522), Image.LANCZOS); im.paste(ph, ((W - 408) // 2, 850)); return
     d = sky(im, (18, 6, 8), (40, 10, 12))
     bz = 10 if (st.get("buzz", True) and u < 1.6 and int(tick) % 2 == 0) else 0; jx = pen.r.uniform(-bz, bz)
     x0, y0, x1, y1 = 260 + jx, 500, 820 + jx, 1250
@@ -236,7 +263,7 @@ def sc_window(im, pen, u, st, tick):
     win = Image.new("RGB", (x1 - x0, y1 - y0)); wd = ImageDraw.Draw(win)
     for y in range(0, y1 - y0, 12):
         k = y / (y1 - y0); wd.rectangle([0, y, x1 - x0, y + 12], fill=(int(14 + 24 * k), int(20 + 16 * k), int(50 + 10 * k)))
-    im.paste(win, (x0, y0)); moon(pen, 760, 560, 55)
+    im.paste(win, (x0, y0)); stars(pen, tick, 30, 1200, 5); moon(pen, 760, 560, 55)
     pen.d.rectangle([x0, 1240, x1, y1], fill=(30, 28, 36)); pen.line([(x0, 1240), (x1, 1240)], (110, 110, 130), 6)
     pen.d.rectangle([x0 + 60, 1130, x0 + 70, 1240], fill=(90, 90, 100)); pen.d.ellipse([x0 + 40, 1110, x0 + 90, 1140], fill=(255, 220, 120))
     zombie_line(pen, st.get("zombies", 4), 1335, 200, tick, x0 + 100, 200, turn=st.get("turn", False) and u > 0.8, dance=st.get("dance", False))
@@ -267,7 +294,8 @@ def sc_door(im, pen, u, st, tick):
     pen.rect(300 + jx, 430, 780 + jx, 1560, (170, 130, 90), 14, fill=(84, 56, 38)); pen.rect(360 + jx, 520, 720 + jx, 940, (140, 104, 70), 8); pen.rect(360 + jx, 1020, 720 + jx, 1460, (140, 104, 70), 8)
     pen.circle(700 + jx, 1010, 26, (230, 190, 90), 8, fill=(200, 160, 70)); pen.circle(540 + jx, 640, 20, (200, 200, 210), 6, fill=(10, 10, 14))
     if st.get("locked"): pen.rect(640 + jx, 1060, 760 + jx, 1180, (210, 210, 220), 10, fill=(60, 60, 70)); pen.line([(660 + jx, 1060), (660 + jx, 1010), (740 + jx, 1010), (740 + jx, 1060)], (210, 210, 220), 10)
-    d.rectangle([300, 1548, 780, 1560], fill=(255, 220, 140))
+    d.rectangle([300, 1548, 780, 1560], fill=(255, 220, 140)); dust(pen, tick, 18, 8)
+    g = Image.new("RGBA", (W, 260), (0, 0, 0, 0)); ImageDraw.Draw(g).polygon([(300, 0), (780, 0), (900, 260), (180, 260)], fill=(255, 220, 140, 40)); im.paste(g, (0, 1560), g)
     if st.get("feet"):
         for fx in (470, 590): d.ellipse([fx - 40, 1548, fx + 40, 1566], fill=(10, 10, 12))
     if kn:
@@ -284,6 +312,7 @@ def sc_hallway(im, pen, u, st, tick):
         g = Image.new("RGBA", (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(g); gd.polygon([(vx - 60, 300), (vx + 60, 300), (vx + 360, 1500), (vx - 360, 1500)], fill=(255, 230, 160, 40)); im.paste(g, (0, 0), g)
         pen.line([(vx - 70, 300), (vx + 70, 300)], (255, 240, 190), 14)
     stick(pen, vx, 1700, 520, pose_walk(tick / 14), CHALK, face=1, w=13, expr="worried", look=-0.6)
+    dust(pen, tick)
     if st.get("zombie_far"): stick(pen, vx + 40, vy + 210, 110, pose_walk(tick / 10, True), ZOMB, face=-1, w=6, eyes=((255, 60, 60), 0))
 
 def sc_stairs(im, pen, u, st, tick):
@@ -299,7 +328,7 @@ def sc_stairs(im, pen, u, st, tick):
         for i in range(2): stick(pen, 230 + i * 120, 1880, 260, pose_walk(tick / 8 + i * 0.4, True), ZOMB, face=1, w=8, eyes=((255, 60, 60), 0))
 
 def sc_roof(im, pen, u, st, tick):
-    sky(im, (8, 10, 28), (30, 24, 54)); moon(pen, 900, 300, 55); skyline(pen, 1500, tick, 0.05, seed=9)
+    sky(im, (8, 10, 28), (30, 24, 54)); stars(pen, tick, 80, 1000, 21); moon(pen, 900, 300, 55); skyline(pen, 1500, tick, 0.05, seed=9); fog(im, 1180, 1420, tick)
     pen.d.rectangle([0, 1380, W, H], fill=(40, 40, 48)); pen.line([(0, 1380), (W, 1380)], (130, 130, 150), 10)
     pen.rect(760, 1060, 960, 1380, (150, 150, 170), 10, fill=(60, 64, 76)); pen.line([(780, 1380), (780, 1440)], (150, 150, 170), 8); pen.line([(940, 1380), (940, 1440)], (150, 150, 170), 8)
     hel = st.get("heli")
@@ -441,7 +470,7 @@ def episode(name, preview=False):
         key = (si, tick)
         if key not in scene_cache:
             if len(scene_cache) > 3: scene_cache.clear()
-            s = shots[si]; im = Image.new("RGB", (W, H)); pen = Pen(ImageDraw.Draw(im, "RGBA"), seed=si * 1000 + (tick // 2 if DRAW_FPS > 12 else tick), j=JIT); pen.im = im
+            s = shots[si]; im = Image.new("RGB", (W, H)); pen = Pen(ImageDraw.Draw(im, "RGBA"), seed=si * 1000 + tick * 10 // DRAW_FPS, j=JIT); pen.im = im
             SCENES[s["scene"]](im, pen, tick / DRAW_FPS - s["_t0"], s, tick * 12 / DRAW_FPS)
             if CAM > 1.0 and s["scene"] != "choice":
                 cw, ch = int(W / CAM), int(H / CAM); x0 = (W - cw) // 2; y0 = int((H - ch) * 0.62)
@@ -506,10 +535,28 @@ def episode(name, preview=False):
         paste_c(im, text_line([("the stop-motion app  ·  COMING SOON", GREY)], 44, 5), 1160, spring(u - 0.7))
         paste_c(im, text_line([(ep.get("next", "FOLLOW FOR PART " + str(ep["part"] + 1)), YEL)], 64), 1320, spring(u - 0.9))
 
+    DRAMA = {"sting", "bang", "growl", "knock"}
+    vig = Image.new("L", (W // 8, H // 8), 0); vd_ = ImageDraw.Draw(vig)
+    for k in range(40): vd_.ellipse([-W // 16 + k * 2, -H // 16 + k * 3, W // 8 + W // 16 - k * 2, H // 8 + H // 16 - k * 3], fill=int(200 * (1 - k / 40) ** 2))
+    vig = vig.filter(ImageFilter.GaussianBlur(6)).resize((W, H), Image.BILINEAR); VIG = Image.new("RGB", (W, H), (0, 0, 0))
+
+    def camera(im, s, si, u):
+        if s["scene"] == "choice": return im
+        k = min(1, u / max(0.5, s["_dur"])); k = k * k * (3 - 2 * k)
+        z = 1.0 + (0.07 * k if si % 2 == 0 else 0.07 * (1 - k)); sx = sy = 0.0
+        hit = DRAMA & set(s.get("sfx", [])) or s.get("rattle") or s.get("shake")
+        if hit and u < 0.6:
+            e = (1 - u / 0.6) ** 2; z += 0.12 * e; sx, sy = 18 * e * math.sin(u * 90), 14 * e * math.cos(u * 77)
+        if s.get("knock") and int(u * 30) % 8 < 2: sx += 10 * math.sin(u * 120)
+        cw, ch = W / z, H / z; x0 = (W - cw) / 2 + sx; y0 = (H - ch) * 0.58 + sy
+        return im.transform((W, H), Image.EXTENT, (x0, y0, x0 + cw, y0 + ch), Image.BILINEAR)
+
     def frame(gt):
         if gt >= t: im = Image.new("RGB", (W, H)); outro(im, gt - t); return im
         si = max(i for i, s in enumerate(shots) if s["_t0"] <= gt); s = shots[si]; u = gt - s["_t0"]
-        im = scene_img(si, int(gt * DRAW_FPS)); overlays(im, s, u, gt)
+        im = camera(scene_img(si, int(gt * DRAW_FPS)), s, si, u); im = Image.composite(VIG, im, vig)
+        if "sting" in s.get("sfx", []) and u < 0.3: im = Image.blend(im, Image.new("RGB", (W, H), (200, 0, 0)), 0.28 * (1 - u / 0.3))
+        overlays(im, s, u, gt)
         if u < 0.08 and si > 0: im = Image.blend(im, Image.new("RGB", (W, H), (255, 255, 255)), 0.35 * (1 - u / 0.08))  # quick flash cut
         return im
 
