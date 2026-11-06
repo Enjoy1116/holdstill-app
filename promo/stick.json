@@ -947,7 +947,7 @@
  "s3text": {
   "part": 9,
   "title": "The Text",
-  "hook": "Season 3 is here",
+  "hook": "Would you survive this?",
   "shots": [
    {
     "scene": "roof",
@@ -964,9 +964,10 @@
    },
    {
     "scene": "roof",
-    "say": "You climb into the helicopter. You're safe. For now.",
+    "say": "You climb into the helicopter. Safe. For now.",
     "key": "safe",
     "heli": "hover",
+    "you": "climb",
     "clock": "12:51",
     "chance": 85,
     "sfx": [
@@ -974,16 +975,25 @@
     ]
    },
    {
+    "scene": "window",
+    "say": "Below you, the zombies still dance.",
+    "key": "dance",
+    "dance": true,
+    "zombies": 5,
+    "clock": "12:51"
+   },
+   {
     "scene": "alert",
     "say": "Then your phone buzzes. A text, from your neighbor.",
     "key": "neighbor",
-    "clock": "12:52",
     "red": false,
     "screen": [
      "NEW MESSAGE",
      "From: Neighbor",
      "It's me!"
     ],
+    "clock": "12:52",
+    "chance": 75,
     "sfx": [
      "buzz"
     ]
@@ -992,36 +1002,64 @@
     "scene": "alert",
     "say": "It says: I'm not a zombie. Come back and get me.",
     "key": "zombie",
-    "clock": "12:52",
     "red": false,
     "screen": [
      "NEW MESSAGE",
      "I'm NOT a zombie.",
      "Come get me!"
     ],
+    "clock": "12:52",
     "chance": 70
    },
    {
     "scene": "window",
-    "say": "Down below, he's still dancing with them. Is he telling the truth?",
-    "key": "truth",
+    "say": "But down there, he's dancing with them.",
+    "key": "dancing",
     "dance": true,
     "zombies": 5,
     "clock": "12:53",
     "chance": 60
    },
    {
+    "scene": "window",
+    "say": "Remember rule number three. Don't trust every text.",
+    "key": "text",
+    "dance": true,
+    "zombies": 5,
+    "clock": "12:53",
+    "chance": 55,
+    "rule": [
+     "RULE #3",
+     "DON'T TRUST EVERY TEXT"
+    ]
+   },
+   {
     "scene": "roof",
-    "say": "The pilot shakes her head. We only have fuel for one trip.",
+    "say": "The pilot shakes her head. Fuel for one trip only.",
     "key": "fuel",
     "heli": "hover",
     "you": "scared",
     "clock": "12:53",
-    "rule": [
-     "RULE #3",
-     "DON'T TRUST EVERY TEXT"
+    "chance": 50,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "Another text. Hurry. They're coming.",
+    "key": "hurry",
+    "red": false,
+    "screen": [
+     "NEW MESSAGE",
+     "Hurry!!",
+     "They're coming"
     ],
-    "chance": 50
+    "clock": "12:54",
+    "chance": 45,
+    "sfx": [
+     "buzz"
+    ]
    },
    {
     "scene": "window",
@@ -1033,6 +1071,34 @@
     "chance": 35,
     "sfx": [
      "sting"
+    ]
+   },
+   {
+    "scene": "alert",
+    "say": "One last text. Look down. I'm the one waving.",
+    "key": "waving",
+    "red": false,
+    "screen": [
+     "NEW MESSAGE",
+     "Look down.",
+     "I'm waving!"
+    ],
+    "clock": "12:55",
+    "chance": 30,
+    "sfx": [
+     "buzz"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "The pilot is waiting for your answer.",
+    "key": "answer",
+    "heli": "hover",
+    "you": "scared",
+    "clock": "12:55",
+    "chance": 30,
+    "sfx": [
+     "heli"
     ]
    },
    {
@@ -1078,8 +1144,17 @@
     ]
    },
    {
+    "scene": "window",
+    "say": "Your neighbor is still down there, waving.",
+    "key": "waving",
+    "dance": true,
+    "zombies": 5,
+    "clock": "12:56",
+    "chance": 40
+   },
+   {
     "scene": "roof",
-    "say": "It lands on your old roof. The engine is way too loud.",
+    "say": "You land on your old roof. The engine is way too loud.",
     "key": "loud",
     "heli": "hover",
     "you": "scared",
@@ -1087,6 +1162,18 @@
     "chance": 35,
     "sfx": [
      "heli"
+    ]
+   },
+   {
+    "scene": "window",
+    "say": "Every zombie heard it. They turn around, and head inside.",
+    "key": "inside",
+    "turn": true,
+    "zombies": 5,
+    "clock": "12:57",
+    "chance": 30,
+    "sfx": [
+     "sting"
     ]
    },
    {
@@ -1103,8 +1190,19 @@
    },
    {
     "scene": "door",
+    "say": "Behind it, footsteps. Coming up the stairs.",
+    "key": "footsteps",
+    "feet": true,
+    "clock": "12:58",
+    "chance": 25,
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "door",
     "say": "Then, knock. Knock. From the inside.",
-    "key": "inside",
+    "key": "knock",
     "knock": true,
     "feet": true,
     "clock": "12:58",
@@ -1119,11 +1217,44 @@
     "key": "hurry",
     "feet": true,
     "clock": "12:58",
+    "chance": 20,
     "rule": [
      "RULE #2",
      "NEVER OPEN THE DOOR"
-    ],
-    "chance": 20
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "The pilot yells: two minutes, then we leave!",
+    "key": "minutes",
+    "heli": "hover",
+    "you": "scared",
+    "clock": "12:59",
+    "chance": 20,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "The knocking gets louder. And louder.",
+    "key": "louder",
+    "knock": true,
+    "rattle": true,
+    "clock": "12:59",
+    "chance": 15,
+    "sfx": [
+     "knock",
+     "bang"
+    ]
+   },
+   {
+    "scene": "door",
+    "say": "Does that really sound like your neighbor?",
+    "key": "really",
+    "feet": true,
+    "clock": "12:59",
+    "chance": 15
    },
    {
     "scene": "choice",
@@ -1166,7 +1297,15 @@
    },
    {
     "scene": "door",
-    "say": "Silence. Then: Biscuit. It's really him!",
+    "say": "Silence. A long, long silence.",
+    "key": "silence",
+    "feet": true,
+    "clock": "12:59",
+    "chance": 20
+   },
+   {
+    "scene": "door",
+    "say": "Then: Biscuit. It's really him!",
     "key": "Biscuit",
     "feet": true,
     "clock": "12:59",
@@ -1176,8 +1315,19 @@
     ]
    },
    {
+    "scene": "door",
+    "say": "You pull the door open together.",
+    "key": "together",
+    "rattle": true,
+    "clock": "1:00",
+    "chance": 45,
+    "sfx": [
+     "bang"
+    ]
+   },
+   {
     "scene": "hallway",
-    "say": "You open the door. Behind him, the hallway is full of zombies.",
+    "say": "Behind him, the hallway is full of zombies.",
     "key": "full",
     "flicker": true,
     "zombie_far": true,
@@ -1185,6 +1335,18 @@
     "chance": 35,
     "sfx": [
      "sting"
+    ]
+   },
+   {
+    "scene": "hallway",
+    "say": "And they are not dancing anymore.",
+    "key": "dancing",
+    "flicker": true,
+    "zombie_far": true,
+    "clock": "1:00",
+    "chance": 30,
+    "sfx": [
+     "growl"
     ]
    },
    {
@@ -1197,9 +1359,41 @@
     ],
     "below": true,
     "clock": "1:00",
-    "chance": 45,
+    "chance": 40,
     "sfx": [
      "steps"
+    ]
+   },
+   {
+    "scene": "stairs",
+    "say": "Rule number four. Never look back.",
+    "key": "back",
+    "floors": [
+     20,
+     21
+    ],
+    "below": true,
+    "clock": "1:01",
+    "chance": 45,
+    "rule": [
+     "RULE #4",
+     "NEVER LOOK BACK"
+    ],
+    "sfx": [
+     "steps"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "You burst onto the roof. The rope is right there!",
+    "key": "rope",
+    "heli": "hover",
+    "rope": true,
+    "you": "climb",
+    "clock": "1:01",
+    "chance": 60,
+    "sfx": [
+     "heli"
     ]
    },
    {
@@ -1247,25 +1441,43 @@
   "next": "FOLLOW FOR SEASON 4",
   "shots": [
    {
-    "scene": "roof",
-    "say": "If you picked B, you took off. Your neighbor never talked to you again.",
-    "key": "again",
+    "scene": "alert",
+    "say": "If you picked B, you left without Biscuit. Your neighbor never forgave you.",
+    "key": "forgave",
     "title_overlay": true,
+    "screen": [
+     "GAME OVER",
+     "Biscuit is mad!"
+    ],
+    "chance": 0,
+    "sfx": [
+     "sting"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "But if you picked A, you wait. One second. Two seconds.",
+    "key": "seconds",
     "heli": "hover",
     "rope": true,
     "you": "hang",
-    "chance": 40,
+    "clock": "1:02",
+    "chance": 30,
     "sfx": [
      "heli"
     ]
    },
    {
     "scene": "door",
-    "say": "But if you picked A, you wait. One second. Two seconds.",
-    "key": "seconds",
+    "say": "The roof door starts to shake.",
+    "key": "shake",
     "rattle": true,
     "clock": "1:02",
-    "chance": 30,
+    "chance": 25,
+    "rule": [
+     "RULE #5",
+     "NEVER LEAVE A FRIEND"
+    ],
     "sfx": [
      "bang"
     ]
@@ -1280,6 +1492,18 @@
     "chance": 45,
     "sfx": [
      "steps"
+    ]
+   },
+   {
+    "scene": "hallway",
+    "say": "And the zombies are right behind him!",
+    "key": "behind",
+    "flicker": true,
+    "zombie_far": true,
+    "clock": "1:02",
+    "chance": 35,
+    "sfx": [
+     "growl"
     ]
    },
    {
@@ -1308,17 +1532,47 @@
     "chance": 80
    },
    {
+    "scene": "window",
+    "say": "Even the scary one in the front.",
+    "key": "front",
+    "dance": true,
+    "zombies": 5,
+    "clock": "1:03",
+    "chance": 85
+   },
+   {
     "scene": "roof",
-    "say": "Biscuit jumps. You catch him. Up, up, and away!",
-    "key": "away",
+    "say": "Biscuit jumps. You catch him!",
+    "key": "catch",
     "heli": "hover",
     "rope": true,
     "you": "hang",
+    "clock": "1:03",
+    "chance": 90,
+    "sfx": [
+     "heli"
+    ]
+   },
+   {
+    "scene": "roof",
+    "say": "Up, up, and away!",
+    "key": "away",
+    "heli": "hover",
+    "you": "wave",
     "clock": "1:03",
     "chance": 95,
     "sfx": [
      "heli"
     ]
+   },
+   {
+    "scene": "window",
+    "say": "Below you, the zombies dance all night long.",
+    "key": "night",
+    "dance": true,
+    "zombies": 5,
+    "clock": "1:04",
+    "chance": 97
    },
    {
     "scene": "alert",
@@ -1331,7 +1585,7 @@
      "Reply YES or NO"
     ],
     "clock": "1:04",
-    "chance": 95,
+    "chance": 97,
     "sfx": [
      "buzz"
     ]
