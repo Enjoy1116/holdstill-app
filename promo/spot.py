@@ -165,6 +165,96 @@ VARIANTS.update({
                   caption="Tick tock... 1 frame is WRONG ⏰ Did you see it the first time? Be honest 👇 Every frame drawn one by one, like in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #animation #spotthedifference #framey"),
 })
 
+
+def ferris(d, t, wrong):
+    cx, cy, R = W / 2, 980, 360
+    d.polygon([(cx, cy), (cx - 260, 1460), (cx - 200, 1460)], fill=(120, 120, 150), outline=(0, 0, 0))
+    d.polygon([(cx, cy), (cx + 260, 1460), (cx + 200, 1460)], fill=(120, 120, 150), outline=(0, 0, 0))
+    d.line([80, 1462, W - 80, 1462], fill=(200, 200, 220), width=8)
+    d.ellipse([cx - R, cy - R, cx + R, cy + R], outline=(230, 230, 245), width=12)
+    d.ellipse([cx - R * 0.55, cy - R * 0.55, cx + R * 0.55, cy + R * 0.55], outline=(170, 170, 200), width=6)
+    a0 = t * 0.9; out = None
+    for k in range(8):
+        a = a0 + k * math.pi / 4; px, py = cx + R * math.cos(a), cy + R * math.sin(a)
+        d.line([cx, cy, px, py], fill=(200, 200, 220), width=6)
+    for k in range(8):
+        a = a0 + k * math.pi / 4; px, py = cx + R * math.cos(a), cy + R * math.sin(a)
+        d.line([px, py, px, py + 40], fill=(30, 30, 40), width=6)
+        c = PAL[k % len(PAL)]; by = py + 40
+        if k == 4: out = (px, by + 40)
+        if wrong and k == 4:
+            d.polygon([(px, by + 95), (px - 70, by - 5), (px + 70, by - 5)], fill=c, outline=(0, 0, 0), width=6)
+        else:
+            d.rounded_rectangle([px - 60, by, px + 60, by + 80], 22, fill=c, outline=(0, 0, 0), width=6)
+            d.rectangle([px - 38, by + 14, px + 38, by + 40], fill=(220, 240, 255))
+    d.ellipse([cx - 34, cy - 34, cx + 34, cy + 34], fill=(255, 196, 40), outline=(0, 0, 0), width=6)
+    return out
+
+def balloons(d, t, wrong):
+    out = None
+    for i in range(6):
+        x = 150 + i * 156 + 30 * math.sin(t * 1.7 + i)
+        y = 1500 - ((t * 190 + i * 230) % 1100)
+        c = PAL[i]
+        d.line([x, y + 75, x + 10 * math.sin(t * 3 + i), y + 260], fill=(230, 230, 240), width=4)
+        if i == 3: out = (x, y)
+        if wrong and i == 3:
+            pts = [(x + (78 if k % 2 == 0 else 34) * math.sin(k * math.pi / 5), y - (78 if k % 2 == 0 else 34) * math.cos(k * math.pi / 5)) for k in range(10)]
+            d.polygon(pts, fill=c, outline=(0, 0, 0), width=6)
+        else:
+            d.ellipse([x - 62, y - 78, x + 62, y + 78], fill=c, outline=(0, 0, 0), width=6)
+            d.ellipse([x - 36, y - 56, x - 14, y - 22], fill=(255, 255, 255, 200))
+            d.polygon([(x, y + 76), (x - 14, y + 94), (x + 14, y + 94)], fill=c, outline=(0, 0, 0))
+    return out
+
+def fish(d, t, wrong):
+    d.rectangle([0, 560, W, 1520], fill=(30, 90, 160, 110))
+    for k in range(5):
+        bx = 120 + k * 210; by = 1480 - ((t * 140 + k * 190) % 900)
+        d.ellipse([bx - 14, by - 14, bx + 14, by + 14], outline=(200, 230, 255), width=4)
+    out = None
+    for i in range(4):
+        y = 720 + i * 220; sp = 230 + i * 30
+        x = -150 + ((t * sp + (0, 260, 1084, 780)[i]) % (W + 300)); c = PAL[(i * 2 + 1) % len(PAL)]
+        wig = 18 * math.sin(t * 9 + i)
+        flip = wrong and i == 2
+        s = -1 if flip else 1
+        if i == 2: out = (x, y)
+        col = (238, 52, 64) if flip else c
+        d.polygon([(x - s * 95, y), (x - s * 165, y - 60 + wig), (x - s * 165, y + 60 + wig)], fill=col, outline=(0, 0, 0), width=6)
+        d.ellipse([x - 110, y - 62, x + 110, y + 62], fill=col, outline=(0, 0, 0), width=6)
+        d.ellipse([x + s * 50 - 16, y - 30, x + s * 50 + 16, y + 2], fill=WHITE, outline=(0, 0, 0), width=4)
+        d.ellipse([x + s * 56 - 7, y - 20, x + s * 56 + 7, y - 6], fill=(0, 0, 0))
+    return out
+
+def traffic(d, t, wrong):
+    cx = W / 2
+    d.rectangle([cx - 22, 1300, cx + 22, 1600], fill=(70, 70, 90))
+    d.rounded_rectangle([cx - 170, 560, cx + 170, 1320], 60, fill=(40, 40, 52), outline=(0, 0, 0), width=10)
+    ph = (t / 1.5) % 4; st = 0 if ph < 1.5 else (1 if ph < 2 else (2 if ph < 3.5 else 1))
+    cols = [(238, 52, 64), (255, 196, 40), (70, 210, 120)]
+    on = {st}
+    if wrong: on = {0, 2}
+    for k in range(3):
+        y = 700 + k * 240; c = cols[k] if k in on else tuple(v // 5 for v in cols[k])
+        d.ellipse([cx - 95, y - 95, cx + 95, y + 95], fill=c, outline=(0, 0, 0), width=8)
+    d.line([0, 1520, W, 1520], fill=(200, 200, 220), width=6)
+    x = -120 + (t * 300) % (W + 240)
+    d.rounded_rectangle([x - 110, 1410, x + 110, 1490], 24, fill=PAL[4], outline=(0, 0, 0), width=6)
+    for wx in (x - 60, x + 60): d.ellipse([wx - 28, 1466, wx + 28, 1522], fill=(20, 20, 26), outline=(0, 0, 0), width=4)
+    return (cx, 700)
+
+VARIANTS.update({
+    "ferris": dict(scene=ferris, hook="1 FRAME IS WRONG", sub="Watch the Ferris wheel...", reveal="A cabin turned into a TRIANGLE!", wrong_at=3.7,
+                   caption="Round and round... but 1 frame is WRONG 🎡 Did you spot it the first time? Comment the second you saw it 👇 Every frame drawn one by one, like in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #animation #spotthedifference #framey"),
+    "balloons": dict(scene=balloons, hook="1 FRAME IS WRONG", sub="Follow the balloons...", reveal="The green balloon became a STAR!", wrong_at=4.2,
+                     caption="6 balloons floating up... 1 frame is WRONG 🎈 Did you catch it? Be honest 👇 Animated frame by frame, the way you animate in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #satisfying #animation #framey"),
+    "fish": dict(scene=fish, hook="1 FRAME IS WRONG", sub="Watch the fish swim...", reveal="One fish turned RED and swam backwards!", wrong_at=3.4,
+                 caption="Just fish swimming... or is it? 🐟 1 frame is WRONG. Comment the second you saw it 👇 Made frame by frame, like you can in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #animation #fish #framey"),
+    "traffic": dict(scene=traffic, hook="1 FRAME IS WRONG", sub="Watch the traffic light...", reveal="RED and GREEN were on at once!", wrong_at=4.0,
+                    caption="Red, green, yellow... but 1 frame is WRONG 🚦 Did you see it the first time? Be honest 👇 Every frame drawn one by one, like in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #animation #spotthedifference #framey"),
+})
+
 PLAY = 6.0; NW = 3
 
 def make_frames(v):
