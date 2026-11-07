@@ -1,5 +1,5 @@
 # SPOT THE MISTAKE: a smooth looping animation with ONE wrong frame, shown twice, then revealed.
-# Usage: python3 spot.py <variant> [--preview]   (variants in VARIANTS below)
+# Usage: python3 spot.py <variant> [--preview]   (RESUME=1: only write missing JPEG frames + wav into $WORK/spotjpg_<variant>, then stop)   (variants in VARIANTS below)
 import os, sys, math, subprocess, wave
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -255,6 +255,31 @@ VARIANTS.update({
                     caption="Red, green, yellow... but 1 frame is WRONG 🚦 Did you see it the first time? Be honest 👇 Every frame drawn one by one, like in Framey, the stop-motion app. Coming soon! Follow @frameyapp for more. #stopmotion #animation #spotthedifference #framey"),
 })
 
+def windmills(d, t, wrong):
+    gy = 1440; out = None
+    d.ellipse([-200, gy - 90, W + 200, gy + 400], fill=(40, 120, 70), outline=(0, 0, 0), width=6)
+    d.ellipse([800, 420, 940, 560], fill=(250, 240, 200)); d.ellipse([835, 405, 975, 545], fill=(24, 18, 40))   # moon
+    for k in range(26):   # twinkling stars
+        sx = (k * 383) % (W - 80) + 40; sy = 400 + ((k * 7) % 13) * 34 + (k % 3) * 9; r = 3 + 3 * (0.5 + 0.5 * math.sin(t * 3 + k))
+        d.ellipse([sx - r, sy - r, sx + r, sy + r], fill=(255, 250, 220))
+    for i, (x, top, R, sp) in enumerate(((230, 1010, 170, 1.2), (W / 2, 820, 230, 0.9), (850, 1060, 150, 1.4))):
+        d.polygon([(x - 34, top), (x + 34, top), (x + 62, gy - 20), (x - 62, gy - 20)], fill=(235, 228, 214), outline=(0, 0, 0), width=6)
+        d.rectangle([x - 20, gy - 110, x + 20, gy - 20], fill=(120, 80, 50), outline=(0, 0, 0), width=4)
+        a0 = t * sp * (1 if i != 1 else -1)
+        col = (238, 52, 64) if (wrong and i == 1) else (PAL[2] if i == 1 else PAL[4])
+        for b in range(4):
+            a = a0 + b * math.pi / 2; ca, sa = math.cos(a), math.sin(a)
+            p = lambda r, w: (x + r * ca - w * sa, top + r * sa + w * ca)
+            d.polygon([p(18, -10), p(R, -30), p(R, 30), p(18, 10)], fill=col, outline=(0, 0, 0), width=5)
+        d.ellipse([x - 22, top - 22, x + 22, top + 22], fill=(40, 40, 50), outline=(0, 0, 0), width=4)
+        if i == 1: out = (x, top)
+    return out
+
+VARIANTS.update({
+    "windmills": dict(scene=windmills, hook="1 FRAME IS WRONG", sub="Watch the windmills spin...", reveal="The big windmill turned RED!", wrong_at=3.6,
+                      caption="3 windmills spinning... but 1 frame is WRONG \U0001F32C\uFE0F Did you spot it the first time? Comment the second you saw it \U0001F447 This was drawn with code, one frame at a time, the same frame-by-frame idea behind Framey, the stop-motion app for your phone. Coming soon! Follow for more. #stopmotion #animation #spotthedifference #framey"),
+})
+
 PLAY = 6.0; NW = 3
 
 def make_frames(v):
@@ -276,13 +301,16 @@ def render(name, preview=False):
     p = None
     if not preview:
         make_audio(name, v, total)
-        JD = f"/home/user/spotjpg_{name}"; os.makedirs(JD, exist_ok=True)
-        for f_ in os.listdir(JD): os.remove(os.path.join(JD, f_))
+        JD = os.environ.get("WORK", "/home/user") + f"/spotjpg_{name}"; os.makedirs(JD, exist_ok=True)
+        RESUME = os.environ.get("RESUME")
+        if not RESUME:
+            for f_ in os.listdir(JD): os.remove(os.path.join(JD, f_))
         p = None; enc = [FF, "-y", "-v", "error", "-framerate", str(FPS), "-i", JD + "/%04d.jpg",
                               "-i", f"{OUT}/_spot_{name}.wav", "-c:v", "libx264", "-threads", "1", "-preset", "faster", "-crf", "21", "-pix_fmt", "yuv420p",
                               "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out]
     shots = []; fi = 0
     for seg, k, n, t0 in frames:
+        if not preview and os.environ.get("RESUME") and os.path.exists(f"{JD}/{fi:04d}.jpg"): fi += 1; continue
         im = BASE.copy(); d = ImageDraw.Draw(im, "RGBA")
         if seg in ("play1", "play2", "hook"):
             t = k / FPS if seg != "hook" else 0.0
@@ -324,6 +352,7 @@ def render(name, preview=False):
         sheet = Image.new("RGB", (270 * len(shots), 480))
         for i, s in enumerate(shots): sheet.paste(s, (270 * i, 0))
         sheet.save(f"{OUT}/spot_{name}_preview.jpg"); print("preview"); return
+    if os.environ.get("RESUME"): print("FRAMES DONE", fi); return
     vv = f"{JD}_v.mp4"
     subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", JD + "/%04d.jpg", "-threads", "1", "-c:v", "libx264", "-crf", "21", "-pix_fmt", "yuv420p", vv], check=True)
     subprocess.run([FF, "-y", "-loglevel", "error", "-i", vv, "-i", f"{OUT}/_spot_{name}.wav", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out], check=True)
