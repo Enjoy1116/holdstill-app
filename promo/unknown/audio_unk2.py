@@ -294,12 +294,14 @@ mix = np.tanh(mix * 1.1) / np.tanh(1.1)
 rms = np.sqrt(np.mean(mix[int(0.5 * SR):] ** 2)); mix *= 0.14 / rms      # body sits lower so the scares can hit HARD
 mix = np.clip(mix, -0.9, 0.9)
 # --- jump-scare blasts, added AFTER the limiter at near full scale (way louder than the voice)
+REF = read_wav("ref/rec.wav")            # Tomer's jump-scare sound (screen recording)
 def blast(seed):
-    d = 1.3; t = tt(d); r = np.random.default_rng(seed)
-    s = screech(d, seed) * 1.0 + scream(d, 820, seed) * 0.8 + scream(d, 1250, seed + 9) * 0.6
-    s += np.tanh(r.uniform(-1, 1, len(t)) * 3) * 0.5 * np.exp(-t * 3)          # noise blast
-    low = boom(d) * 1.3 + impact(d) * 1.0
-    s = np.tanh((s + low) * 3.0) * env(len(t), 0.002, 0.35)
+    s = REF[int(4.555 * SR):int(5.955 * SR)].copy()
+    t = tt(len(s) / SR); s = s / (np.abs(s).max() + 1e-9)
+    s = np.tanh(s * 3.5) / np.tanh(3.5)                 # push it to full loudness
+    s = s * env(len(s), 0.002, 0.3)
+    low = (boom(len(s) / SR) * 0.5)[:len(s)]
+    s = s + low * 0.35
     return s / (np.abs(s).max() + 1e-9)
 for i, at in enumerate(SCARES):
     b = blast(i + 3) * 0.97; k = int(at * SR); n = min(len(b), N - k)
