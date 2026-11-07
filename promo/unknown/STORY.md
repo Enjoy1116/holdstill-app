@@ -12,9 +12,15 @@ Clues to plant (never say "dad" before the finale):
 - Later ideas: calls him "kiddo" once; knows the scarf was a birthday gift; signs a text with a nickname only dad used;
   the white-suit man at the bridge keeps a photo of a kid with an orange scarf; same handwriting on the map.
 
+## Narration rules (from Tomer)
+- First person ("I"), told as it happens — the narrator NEVER knows what's coming (no "the day before the world ended",
+  no "forever", no "one last time", no "nobody alive"). Reactions only: "How did it know that?"
+- Part 1 opens: "At 7:25 AM, November 6th, I was watching videos on my phone... when an unknown number texted me."
+  Opening shot is first-person POV: my hands holding my phone, a video playing, the text banner drops in.
+
 ## Part 1 beats (Day 0 → Day 30)
-Hook: "In 24 hours, the world ends. Do exactly what I say, and you'll live." → "You're wearing the orange scarf right now."
-Day 0 store (coughing cashier, yellow eyes) → lock door at 11:58 → 11:59 emergency alert → screaming.
+Hook (7:25 AM, Nov 6, POV phone): "At midnight, the world ends. Do exactly what I say, and you'll live." → "You're wearing the orange scarf right now."
+Day 0 ("Don't go to school today") store (coughing cashier, yellow eyes) → lock door at 11:58 → 11:59 emergency alert → screaming.
 Rule 1 (don't open the door, not even for people you know) → Day 3 Mr. Hale at the peephole → "Don't." → he turns.
 Rule 2 (roof, 3 AM) → drone drops a crate: radio, flashlight, map with the bridge circled, "DAY 30".
 Day 12 power dies → Rule 3 (they're drawn to light) → flashlight across the street goes out forever.

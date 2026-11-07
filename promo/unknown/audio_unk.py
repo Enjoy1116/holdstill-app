@@ -106,7 +106,8 @@ A = lambda n: st[n][0]; B = lambda n: st[n][1]
 # hook: low D drone + ticking clock
 drone_pad(0, A("s_title"), [26, 33, 38, 41], 0.55)
 for k in range(int(A("s_title") / 0.5)): place(music, 0.2 + k * 0.5, tick(), 0.35 if k % 2 == 0 else 0.22)
-place(sfx, 0.0, boom(), 0.7)
+place(sfx, 0.0, boom(), 0.5)
+place(sfx, frac("N1", 0.76), vibrate(0.7), 0.9); place(sfx, frac("N1", 0.76), ding(), 0.6); place(sfx, frac("N1", 0.76) + 0.1, boom(1.8), 0.8)
 place(sfx, T("U2") + 0.2, boom(1.6), 0.8)
 place(sfx, A("s_title") - 1.1, reverse_riser(1.1), 0.7)
 place(sfx, A("s_title"), impact(1.6), 1.0); place(sfx, A("s_title"), boom(2.0), 0.8)
@@ -165,7 +166,7 @@ for e in unk1.D["events"]:
         for i in range(n): place(sfx, e["t"] + 0.15 + dur * i / n, click(), 0.6)
         place(sfx, e["end"] - 0.2, send(), 0.6)
 place(sfx, E("N9") - 0.5, vibrate(0.9), 0.9)
-place(sfx, frac("N23", 0.4), vibrate(0.9), 0.9)
+place(sfx, frac("N23", 0.7), vibrate(0.9), 0.9)
 # store
 place(amb, A("s_store"), hum(B("s_store") - A("s_store"), 60), 0.35)
 c0 = frac("N4", 0.42)

@@ -157,7 +157,7 @@ def hero_reading(c, x, gy, s, t, expr="worry", look=0.6, lit=1.0, buzz=0.0, p=No
 
 # ---------------------------------------------------------------- overlays: chat phone + banners
 SESSIONS = [
- (0.0, T("N1") + 0.9), (E("N2") - 0.5, E("U2") + 0.9), (T("U3") - 0.55, E("U4") + 0.7),
+ (T("U1") - 0.45, E("U2") + 0.9), (T("U3") - 0.55, E("U4") + 0.7),
  (T("U6") - 0.55, E("U6") + 0.8), (T("U8") - 0.55, E("U8") + 0.7), (T("U9") - 0.55, E("U9") + 0.7),
  (E("N18") - 0.2, E("U12") + 0.6), (T("U13") - 0.55, E("U13") + 0.5),
 ]
@@ -191,6 +191,11 @@ def draw_chat(c, t):
     rrect(c, L, TOP, R, BOT, 92, fill(C(22, 22, 26)))
     rrect(c, L + 18, TOP + 18, R - 18, BOT - 18, 76, fill(C(6, 6, 9)))
     rrect(c, 470, TOP + 34, 610, TOP + 72, 19, fill(C(0, 0, 0)))                      # island
+    clk = {0: "7:25", 1: "7:31", 2: "8:14", 3: "2:40", 4: "9:12", 5: "1:13", 6: "5:47"}.get([i for i, (sa, sb) in enumerate(SESSIONS) if sa == a][0], "")
+    c.drawString(clk, L + 80, TOP + 66, inter("SemiBold", 30), fill(C(240, 240, 245)))
+    rrect(c, R - 140, TOP + 42, R - 88, TOP + 66, 7, stroke(C(240, 240, 245), 3))
+    bl = {0: 1.0, 1: 0.95, 2: 0.9, 3: 0.6, 4: 0.45, 5: 0.2, 6: 0.04}.get([i for i, (sa, sb) in enumerate(SESSIONS) if sa == a][0], 1)
+    rrect(c, R - 136, TOP + 46, R - 136 + 44 * bl, TOP + 62, 4, fill(C(255, 60, 60) if bl < 0.1 else C(240, 240, 245)))
     # header
     hy = TOP + 150
     c.drawCircle(540, hy, 50, fill(C(90, 90, 100)))
@@ -277,7 +282,7 @@ def draw_banners(c, t):
                 c.restore()
 
 # ---------------------------------------------------------------- captions (narrator)
-HOT = {"text,", "unknown", "yellow.", "11:58,", "11:59,", "screaming.", "knocked.", "lock...", "buzzed.", "scratching.", "drone.",
+HOT = {"7:25", "november", "texted", "again.", "alone.", "text,", "unknown", "yellow.", "11:58,", "11:59,", "screaming.", "knocked.", "lock...", "buzzed.", "scratching.", "drone.",
        "bridge.", "30.", "died.", "flashlight.", "forever.", "white", "suits,", "collecting", "window.", "nobody", "alive.", "1%.",
        "ran.", "empty.", "suit.", "number", "2."}
 CHUNKS = []
@@ -316,20 +321,83 @@ def draw_caption(c, t):
             c.restore(); return
 
 # ---------------------------------------------------------------- scenes
+def s_pov(c, t, T_):
+    """First-person: my hands, my phone, a video playing — then the text drops in."""
+    nt = frac("N1", 0.76)
+    z = 1.0 + 0.04 * t + 0.22 * ease(clamp((t - nt - 0.2) / 1.2))
+    py = 0.0 + 60 * ease(clamp((t - nt - 0.2) / 1.2))
+    sx, sy = shake(t, 5 if nt < t < nt + 0.7 else 1.2, 45)
+    rect(c, 0, 0, W, H, lin(c, 0, 0, 0, H, [C(18, 20, 40), C(34, 36, 70)]))
+    c.drawCircle(W / 2, 960, 900, rad(W / 2, 960, 900, [C(120, 160, 255, 50), C(120, 160, 255, 0)]))
+    c.save(); cam(c, z, W / 2, 940 - py, sx, sy)
+    rect(c, -400, 1500, W + 400, H + 600, fill(C(52, 74, 140)))                    # blanket
+    for i in range(6): c.drawLine(-200 + i * 260, 1500, 40 + i * 260, H + 400, stroke(C(44, 62, 120), 14))
+    sc = skia.Path(); sc.moveTo(380, H + 200); sc.cubicTo(420, 1760, 520, 1700, 560, 1600)   # my scarf
+    c.drawPath(sc, stroke(OUT, 96)); c.drawPath(sc, stroke(C(254, 97, 0), 70))
+    L, R, TOP, BOT = 250, 830, 400, 1460
+    c.save(); c.rotate(-2)
+    c.drawRRect(skia.RRect.MakeRectXY(skia.Rect.MakeLTRB(L, TOP, R, BOT), 80, 80), glow(C(140, 190, 255, 120), 50))
+    rrect(c, L, TOP, R, BOT, 80, fill(C(22, 22, 26))); rrect(c, L + 16, TOP + 16, R - 16, BOT - 16, 66, fill(C(0, 0, 0)))
+    c.save(); c.clipRRect(skia.RRect.MakeRectXY(skia.Rect.MakeLTRB(L + 16, TOP + 16, R - 16, BOT - 16), 66, 66), True)
+    # the video I'm watching: a stickman skater
+    rect(c, L, TOP, R, BOT, lin(c, 0, TOP, 0, BOT, [C(120, 190, 250), C(250, 210, 160)]))
+    ramp = skia.Path(); ramp.moveTo(L, 1180); ramp.quadTo(L + 60, 1330, L + 200, 1330); ramp.lineTo(R - 200, 1330); ramp.quadTo(R - 60, 1330, R, 1180); ramp.lineTo(R, BOT); ramp.lineTo(L, BOT); ramp.close()
+    c.drawPath(ramp, fill(C(170, 150, 130))); c.drawPath(ramp, stroke(OUT, 8))
+    ph = (t * 0.55) % 1.0; sxk = L + 120 + (R - L - 240) * (0.5 - 0.5 * math.cos(ph * 2 * math.pi))
+    air = max(0, math.sin(ph * 2 * math.pi * 2)) * 60
+    gy = 1330 - air
+    stick(c, sxk, gy - 24, 300, pose(lean=8, uaL=-60, laL=-20, uaR=70, laR=10, ulL=-20, llL=30, ulR=26, llR=30), CIVS[0], face=1 if math.sin(ph * 2 * math.pi) > 0 else -1, expr="happy", look=0.3)
+    outlined_rect(c, sxk - 80, gy - 22, sxk + 80, gy - 6, C(230, 60, 60), 5, 8)
+    for wx in (-50, 50): c.drawCircle(sxk + wx, gy - 2, 10, fill(OUT))
+    for i, yy in enumerate((930, 1040, 1150)):
+        c.drawCircle(R - 80, yy, 34, fill(C(0, 0, 0, 90)))
+    heart(c, R - 80, 935, 46, 240)
+    c.drawString("@sk8_stix", L + 50, BOT - 120, inter("Bold", 32), fill(C(255, 255, 255)))
+    c.drawString("day 47 of learning a kickflip", L + 50, BOT - 78, inter("Medium", 26), fill(C(255, 255, 255)))
+    rect(c, L, BOT - 40, R, BOT - 34, fill(C(255, 255, 255, 80))); rect(c, L, BOT - 40, L + (R - L) * ((t / 7) % 1), BOT - 34, fill(C(255, 255, 255)))
+    # status bar
+    c.drawString("7:25", L + 70, TOP + 70, inter("SemiBold", 34), fill(C(255, 255, 255)))
+    rrect(c, R - 130, TOP + 44, R - 76, TOP + 70, 7, stroke(C(255, 255, 255), 3)); rrect(c, R - 126, TOP + 48, R - 92, TOP + 66, 4, fill(C(255, 255, 255)))
+    # the text arrives
+    if t > nt:
+        k = ease_out(clamp((t - nt) / 0.35)); y0 = lerp(TOP - 200, TOP + 100, k)
+        rrect(c, L + 30, y0, R - 30, y0 + 170, 36, fill(C(30, 30, 36, 245)))
+        c.drawCircle(L + 90, y0 + 62, 32, fill(C(90, 90, 100))); text_c(c, "?", L + 90, y0 + 78, inter("Bold", 40), C(230, 230, 236))
+        c.drawString("Unknown Number", L + 140, y0 + 58, inter("Bold", 30), fill(C(255, 255, 255)))
+        c.drawString("now", R - 110, y0 + 58, inter("Medium", 24), fill(C(150, 150, 160)))
+        c.drawString("At midnight, the world ends.", L + 140, y0 + 102, inter("SemiBold", 30), fill(C(235, 235, 240)))
+        c.drawString("Do exactly what I say, and...", L + 140, y0 + 140, inter("Medium", 28), fill(C(170, 170, 180)))
+    c.restore()
+    c.restore()
+    # my hands
+    for side in (-1, 1):
+        hx = 540 + side * 300; hy = 1240
+        arm = skia.Path(); arm.moveTo(540 + side * 520, H + 100); arm.lineTo(540 + side * 420, 1560); arm.lineTo(hx, hy)
+        c.drawPath(arm, stroke(OUT, 80)); c.drawPath(arm, stroke(C(250, 248, 242), 52))
+        c.drawCircle(hx, hy, 58, fill(OUT)); c.drawCircle(hx, hy, 45, fill(C(250, 248, 242)))
+    c.restore()
+    # time stamp
+    if t < nt:
+        a = clamp(t / 0.3) * (1 - clamp((t - nt + 0.4) / 0.4))
+        k = back_out(clamp(t / 0.35), 2.0)
+        c.save(); c.translate(W / 2, 250); c.scale(k, k)
+        text_c(c, "NOV 6  •  7:25 AM", 0, 0, font("Anton", 92), C(255, 255, 255, int(255 * a)), C(0, 0, 0, int(200 * a)), 14)
+        c.restore()
+
 def s_hook(c, t, T_):
-    g = t  # global == local here
-    z = lerp(2.0, 1.45, ease(clamp((t - 5.6) / 3.0))) + 0.3 * ease(clamp((t - 18.3) / 2.6))
-    cx = lerp(430, 560, ease(clamp((t - 5.6) / 3.0))); cy = lerp(1060, 1150, ease(clamp((t - 5.6) / 3.0)))
-    c.save(); cam(c, z, cx, cy, *shake(t, 2.5 if T("U2") < t < T("U2") + 0.6 else 0))
-    bedroom(c, t, red_dot=(890, 760) if t > T("N3") + 0.5 else None)
-    shock = T("U2") + 0.5 < t
+    g = t + T("U1") - 0.45
+    z = 1.45 + 0.3 * ease(clamp((g - T("N3") + 0.3) / 2.6))
+    cx, cy = 560, 1150
+    c.save(); cam(c, z, cx, cy, *shake(g, 2.5 if T("U2") < g < T("U2") + 0.6 else 0))
+    bedroom(c, g, red_dot=(890, 760) if g > T("N3") + 0.5 else None)
+    shock = T("U2") + 0.5 < g
     look = 0.6
     p = SIT_PHONE
-    if t > T("N3") - 0.2:   # looks down at the scarf, then at the window
-        q = ease(clamp((t - T("N3") + 0.2) / 0.5)); q2 = ease(clamp((t - frac("N3", 0.5)) / 0.4))
+    if g > T("N3") - 0.2:   # looks down at the scarf, then at the window
+        q = ease(clamp((g - T("N3") + 0.2) / 0.5)); q2 = ease(clamp((g - frac("N3", 0.62)) / 0.4))
         p = mix(SIT_PHONE, pose(lean=6, head=lerp(30, -8, q2), ulL=84, llL=84, ulR=88, llR=88, uaL=34, laL=-104, uaR=30, laR=-80), q)
         look = lerp(0.6, 1.0, q2)
-    hero_reading(c, 400, 1400, 470, t, "shock" if shock else "worry", look)
+    hero_reading(c, 400, 1400, 470, g, "shock" if shock else "worry", look)
     dark(c, 0.25)
     c.restore()
 
@@ -702,7 +770,7 @@ def facade_across(c, t, beam_on, k_horde):
             stick(c, x, gy, 210, p, ZOMB, face=1, expr="z", look=0.3)
 
 def s_across(c, t, T_):
-    g0 = T("N14"); on_t = frac("N14", 0.33) - g0; off_t = frac("N14", 0.83) - g0
+    g0 = T("N14"); on_t = frac("N14", 0.37) - g0; off_t = frac("N14", 0.9) - g0
     beam = clamp((t - on_t) / 0.15) if t < off_t else 0.0
     if off_t - 0.6 < t < off_t and (t * 16) % 2 < 1: beam *= 0.2
     c.save(); cam(c, 1.0 + 0.25 * ease(clamp(t / 6)), 640, 1000)
@@ -953,7 +1021,7 @@ def s_end(c, t, T_):
 # ---------------------------------------------------------------- shot list (start, end, fn, day, transition)
 def _shots():
     b = [
-     (0.0, s_hook, None, None), (E("N3") + 0.35, s_title, None, "cut"), (T("U3") - 0.55, s_day0, 0, "flash"),
+     (0.0, s_pov, None, None), (T("U1") - 0.45, s_hook, None, "cut"), (E("N3") + 0.35, s_title, None, "cut"), (T("U3") - 0.55, s_day0, 0, "flash"),
      (T("N4") - 0.05, s_store, 0, "punch"), (T("N5") - 0.05, s_lock, 0, "punch"), (T("N6") - 0.05, s_alert, 0, "flash"),
      (T("N7") - 0.1, s_chaos, 0, "punch"), (T("U6") - 0.55, s_rule1, 1, "flash"),
      (T("N8") - 0.1, s_knock, 3, "punch"), (frac("N8", 0.33), s_peep, 3, "punch"), (T("N9") - 0.1, s_hand, 3, "punch"),
