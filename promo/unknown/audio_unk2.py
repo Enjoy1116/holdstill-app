@@ -204,6 +204,11 @@ drone_pad(A("s_cta"), TOTAL, [38, 45, 50, 53], 0.35, 0.4)
 beat(A("s_cta"), TOTAL - 0.3, 92, 0.6, hats=True, snares=True, half=True, bass=[26, 26, 29, 24])
 
 # ---- sound effects (story)
+_n3 = T("N3"); _d3 = E("N3") - _n3
+place(amb, A("s_fridge"), hum(B("s_fridge") - A("s_fridge"), 50), 0.6)
+footsteps(A("s_fridge"), A("s_fridge") + 1.3, 0.33, 0.3)
+place(sfx, _n3 + _d3 * 0.13, creak(0.7), 0.9); place(sfx, _n3 + _d3 * 0.13, whoosh(0.4), 0.4)
+place(sfx, _n3 + _d3 * 0.42, braam(2.6, 41.2), 1.0)
 for a, b, fn, d, tr in SHOTS[1:]:
     if tr != "cut": place(sfx, a - 0.2, whoosh(0.4), 0.35)
 place(sfx, E("N9") - 0.5, vibrate(0.9), 0.9)

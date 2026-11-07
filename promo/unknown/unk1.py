@@ -281,7 +281,7 @@ def draw_banners(c, t):
                 c.restore()
 
 # ---------------------------------------------------------------- captions (narrator)
-HOT = {"7:25", "november", "texted", "again.", "alone.", "text,", "unknown", "yellow.", "11:58,", "11:59,", "screaming.", "knocked.", "lock...", "buzzed.", "scratching.", "drone.",
+HOT = {"7:25", "november", "texted", "again.", "alone.", "pizza...", "chair...", "fridge.", "text,", "unknown", "yellow.", "11:58,", "11:59,", "screaming.", "knocked.", "lock...", "buzzed.", "scratching.", "drone.",
        "bridge.", "30.", "died.", "flashlight.", "forever.", "white", "suits,", "collecting", "window.", "nobody", "alive.", "1%.",
        "ran.", "empty.", "suit.", "number", "2."}
 CHUNKS = []
@@ -398,6 +398,60 @@ def s_hook(c, t, T_):
         look = lerp(0.6, 1.0, q2)
     hero_reading(c, 400, 1400, 470, g, "shock" if shock else "worry", look)
     dark(c, 0.25)
+    c.restore()
+
+def fridge_scene(c, t, g, open_k, inside=True):
+    rect(c, -600, -600, W + 600, H + 600, lin(c, 0, 0, 0, H, [C(70, 78, 96), C(48, 52, 66)]))
+    for yy in range(700, 1240, 60):                                     # backsplash tiles
+        c.drawLine(-600, yy, W + 600, yy, stroke(C(84, 92, 110), 3))
+    for xx in range(-600, W + 600, 60): c.drawLine(xx, 700, xx, 1240, stroke(C(84, 92, 110), 3))
+    outlined_rect(c, -300, 1240, 580, 1500, C(120, 92, 70), 8, 6)       # counter
+    rect(c, -300, 1225, 580, 1250, fill(C(190, 190, 196)))
+    rect(c, -600, 1500, W + 600, H + 700, fill(C(58, 52, 54))); c.drawLine(-600, 1500, W + 600, 1500, stroke(OUT, 10))
+    for i in range(-4, 12): c.drawLine(i * 140, 1500, i * 140 - 180, H + 300, stroke(C(50, 44, 46), 5))
+    L, R, TOP, BOT = 620, 960, 600, 1500
+    outlined_rect(c, L, TOP, R, BOT, C(214, 218, 224), 9, 18)
+    if open_k > 0:   # lit interior
+        rect(c, L + 18, TOP + 18, R - 18, BOT - 18, fill(C(236, 244, 255)))
+        for yy in (860, 1100): c.drawLine(L + 18, yy, R - 18, yy, stroke(C(170, 186, 206), 8))
+        if inside:
+            # a whole pizza on the top shelf
+            c.drawOval(skia.Rect.MakeLTRB(L + 50, 790, R - 50, 862), fill(C(196, 120, 50))); c.drawOval(skia.Rect.MakeLTRB(L + 50, 790, R - 50, 862), stroke(OUT, 6))
+            c.drawOval(skia.Rect.MakeLTRB(L + 68, 798, R - 68, 852), fill(C(250, 200, 90)))
+            for px, py in ((700, 818), (760, 832), (820, 814), (880, 830), (740, 806), (850, 842)):
+                c.drawOval(skia.Rect.MakeLTRB(px - 13, py - 7, px + 13, py + 7), fill(C(190, 40, 40)))
+            # ...and a wooden chair jammed inside
+            wood = C(150, 96, 56)
+            c.save(); c.translate(790, 1470); c.rotate(-6)
+            outlined_rect(c, -110, -230, 110, -200, wood, 7, 4)          # seat
+            for lx in (-95, 85): outlined_rect(c, lx, -200, lx + 18, 0, wood, 6, 3)
+            outlined_rect(c, 85, -500, 108, -200, wood, 6, 3)             # back post
+            outlined_rect(c, -20, -480, 108, -450, wood, 6, 3); outlined_rect(c, -20, -400, 108, -372, wood, 6, 3)
+            c.restore()
+        glow_p = fill(C(0, 0, 0)); glow_p.setShader(skia.GradientShader.MakeRadial(skia.Point(790, 1050), 900, [C(220, 235, 255, int(140 * open_k)), C(220, 235, 255, 0)], None))
+        c.drawCircle(790, 1050, 900, glow_p)
+    # door swinging open toward us (hinge on the right)
+    dw = (R - L) * (1 - open_k)
+    if dw > 4:
+        outlined_rect(c, R - dw, TOP, R, BOT, C(222, 226, 232), 9, 18)
+        c.drawLine(R - dw + 30, 800, R - dw + 30, 1000, stroke(C(150, 154, 160), 14))
+    if open_k > 0: outlined_rect(c, R - 4, TOP + 10, R + 70 * open_k, BOT - 10, C(206, 210, 218), 7, 10)
+
+def s_fridge(c, t, T_):
+    g = GT; n3 = T("N3"); d = E("N3") - n3
+    op = ease_out(clamp((g - (n3 + d * 0.13)) / 0.35))
+    zin = ease(clamp((g - (n3 + d * 0.2)) / 1.4))
+    c.save(); cam(c, lerp(1.25, 1.6, zin), lerp(560, 690, zin), lerp(1150, 1090, zin), *shake(g, 4 if op > 0 and g < n3 + d * 0.13 + 0.4 else 0))
+    fridge_scene(c, t, g, op)
+    hx = lerp(-150, 470, ease_out(clamp(t / 1.3)))
+    if t < 1.3: hp = walk(t * 8)
+    elif op < 0.5: hp = pose(uaR=-60, laR=-20, lean=6)
+    else: hp = mix(pose(uaR=-60, laR=-20), scared(t), clamp((g - (n3 + d * 0.62)) / 0.4))
+    shocked = g > n3 + d * 0.25
+    stick(c, hx, 1500, 470, hp, HERO, face=1, expr="shock" if shocked else "worry", look=0.7, scarf_t=t, blink=blink_at(t))
+    if op > 0:
+        fx, fy = wpt(hx, 1500, 470, hp, 1, "hd"); face_light(c, fx, fy, 260, int(120 * op), (220, 235, 255))
+    dark(c, 0.3 * (1 - op))
     c.restore()
 
 def s_title(c, t, T_):
@@ -1153,7 +1207,7 @@ def s_end(c, t, T_):
 # ---------------------------------------------------------------- shot list (start, end, fn, day, transition)
 def _shots():
     b = [
-     (0.0, s_pov, None, None), (T("U1") - 0.4, s_hook, None, "cut"), (E("N3") + 0.35, s_title, None, "cut"), (T("U3") - 0.45, s_day0, 0, "flash"),
+     (0.0, s_pov, None, None), (T("U1") - 0.4, s_hook, None, "cut"), (E("U2") + 0.6, s_fridge, None, "cut"), (E("N3") + 0.35, s_title, None, "cut"), (T("U3") - 0.45, s_day0, 0, "flash"),
      (T("N4") - 0.05, s_store, 0, "punch"), (T("N5") - 0.05, s_lock, 0, "punch"), (T("N6") - 0.05, s_alert, 0, "flash"),
      (T("N7") - 0.1, s_chaos, 0, "punch"), (T("U6") - 1.2, s_rule1, 1, "cut"),
      (T("N8") - 0.1, s_knock, 3, "punch"), (frac("N8", 0.33), s_peep, 3, "punch"), (T("N9") - 0.1, s_hand, 3, "punch"),

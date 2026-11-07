@@ -19,7 +19,7 @@ Clues to plant (never say "dad" before the finale):
   Opening shot is first-person POV: my hands holding my phone, a video playing, the text banner drops in.
 
 ## Part 1 beats (Day 0 → Day 30)
-Hook (7:25 AM, Nov 6, POV phone): "At midnight, the world ends. Do exactly what I say, and you'll live." → "You're wearing the orange scarf right now."
+Hook (7:25 AM, Nov 6, POV phone): "At midnight, the world ends. Do exactly what I say, and you'll live." → "There's a pizza and a chair in your fridge." → he checks: it's true.
 Day 0 ("Don't go to school today") store (coughing cashier, yellow eyes) → lock door at 11:58 → 11:59 emergency alert → screaming.
 Rule 1 (don't open the door, not even for people you know) → Day 3 Mr. Hale at the peephole → "Don't." → he turns.
 Rule 2 (roof, 3 AM) → drone drops a crate: radio, flashlight, map with the bridge circled, "DAY 30".
