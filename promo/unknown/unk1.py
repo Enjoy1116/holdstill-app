@@ -157,9 +157,8 @@ def hero_reading(c, x, gy, s, t, expr="worry", look=0.6, lit=1.0, buzz=0.0, p=No
 
 # ---------------------------------------------------------------- overlays: chat phone + banners
 SESSIONS = [
- (T("U1") - 0.45, E("U2") + 0.9), (T("U3") - 0.55, E("U4") + 0.7),
- (T("U6") - 0.55, E("U6") + 0.8), (T("U8") - 0.55, E("U8") + 0.7), (T("U9") - 0.55, E("U9") + 0.7),
- (E("N18") - 0.2, E("U12") + 0.6), (T("U13") - 0.55, E("U13") + 0.5),
+ (T("U1") - 0.4, E("U2") + 0.7), (T("U3") - 0.45, E("U4") + 0.6), (T("U6") - 0.3, E("U6") + 0.7), (T("U8") - 0.3, E("U8") + 0.6),
+ (T("U9") - 0.3, E("U9") + 0.6), (E("N18") - 0.2, E("U12") + 0.15), (T("U13") - 0.45, E("U13") + 0.4),
 ]
 BANNERS = ["U5", "U7", "U10", "U14"]
 MSGS = []   # (time, side, text)
@@ -323,9 +322,9 @@ def draw_caption(c, t):
 # ---------------------------------------------------------------- scenes
 def s_pov(c, t, T_):
     """First-person: my hands, my phone, a video playing — then the text drops in."""
-    nt = frac("N1", 0.76)
-    z = 1.0 + 0.04 * t + 0.22 * ease(clamp((t - nt - 0.2) / 1.2))
-    py = 0.0 + 60 * ease(clamp((t - nt - 0.2) / 1.2))
+    nt = 0.12
+    z = 1.06 + 0.035 * t + 0.1 * ease(clamp((t - 5.5) / 2.5))
+    py = 40 * ease(clamp(t / 3))
     sx, sy = shake(t, 5 if nt < t < nt + 0.7 else 1.2, 45)
     rect(c, 0, 0, W, H, lin(c, 0, 0, 0, H, [C(18, 20, 40), C(34, 36, 70)]))
     c.drawCircle(W / 2, 960, 900, rad(W / 2, 960, 900, [C(120, 160, 255, 50), C(120, 160, 255, 0)]))
@@ -377,15 +376,15 @@ def s_pov(c, t, T_):
         c.drawCircle(hx, hy, 58, fill(OUT)); c.drawCircle(hx, hy, 45, fill(C(250, 248, 242)))
     c.restore()
     # time stamp
-    if t < nt:
-        a = clamp(t / 0.3) * (1 - clamp((t - nt + 0.4) / 0.4))
+    if t < 4.5:
+        a = clamp(t / 0.3) * (1 - clamp((t - 4.0) / 0.4))
         k = back_out(clamp(t / 0.35), 2.0)
         c.save(); c.translate(W / 2, 250); c.scale(k, k)
         text_c(c, "NOV 6  •  7:25 AM", 0, 0, font("Anton", 92), C(255, 255, 255, int(255 * a)), C(0, 0, 0, int(200 * a)), 14)
         c.restore()
 
 def s_hook(c, t, T_):
-    g = t + T("U1") - 0.45
+    g = GT
     z = 1.45 + 0.3 * ease(clamp((g - T("N3") + 0.3) / 2.6))
     cx, cy = 560, 1150
     c.save(); cam(c, z, cx, cy, *shake(g, 2.5 if T("U2") < g < T("U2") + 0.6 else 0))
@@ -425,6 +424,43 @@ def s_day0(c, t, T_):
     dark(c, 0.25)
     c.restore()
 
+def jump_face(c, k, st, t, mouth=1.0):
+    """Full-screen face slam. k = 0..1 time since the snap (scale settles fast)."""
+    rect(c, -50, -50, W + 50, H + 50, fill(C(40, 0, 6)))
+    c.drawCircle(W / 2, 900, 1100, rad(W / 2, 900, 1100, [C(160, 10, 20, 200), C(20, 0, 4, 0)]))
+    sc = lerp(1.45, 1.0, ease_out(clamp(k / 0.12)))
+    sx, sy = shake(t, 22 * (1 - clamp(k / 0.8)) + 4, 60)
+    c.save(); c.translate(W / 2 + sx, 930 + sy); c.scale(sc, sc)
+    R = 560
+    c.drawCircle(0, 0, R + 26, fill(OUT)); c.drawCircle(0, 0, R, fill(st["head"]))
+    if st["kind"] == "suit":
+        vp = skia.RRect.MakeRectXY(skia.Rect.MakeLTRB(-420, -230, 460, 150), 160, 160)
+        g = fill(C(40, 230, 220, 200)); g.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 60)); c.drawRRect(vp, g)
+        c.drawRRect(vp, fill(C(8, 22, 30))); c.drawRRect(vp, stroke(OUT, 40))
+        c.drawLine(-300, -120, 340, -120, stroke(C(60, 240, 230), 36))
+    else:
+        eye = st["eye"] if st["kind"] == "zombie" else C(255, 226, 60)
+        c.drawCircle(0, 0, R, fill(C(150, 170, 140) if st["kind"] == "zombie" else C(196, 190, 170)))
+        c.drawCircle(0, 60, R, rad(0, 60, R, [C(0, 0, 0, 0), C(0, 0, 0, 0), C(20, 30, 20, 150)], [0, 0.55, 1.0]))
+        rnd = random.Random(5)
+        for i in range(6):   # veins / cracks
+            p = skia.Path(); x0, y0 = rnd.uniform(-400, 400), rnd.uniform(-380, 380); p.moveTo(x0, y0)
+            for j in range(4): x0 += rnd.uniform(-70, 70); y0 += rnd.uniform(-60, 60); p.lineTo(x0, y0)
+            c.drawPath(p, stroke(C(90, 40, 60, 160), 9))
+        for ex in (-190, 190):
+            c.drawOval(skia.Rect.MakeLTRB(ex - 150, -250, ex + 150, 10), fill(C(16, 10, 12)))          # sunken sockets
+            gl = fill(C(255, 220, 80, 200)); gl.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 40))
+            c.drawCircle(ex, -120, 95, gl); c.drawCircle(ex, -120, 58, fill(eye)); c.drawCircle(ex, -120, 16, fill(C(40, 10, 0)))
+            inner = 1 if ex < 0 else -1      # angry brows: inner ends low
+            c.drawLine(ex - 150 * inner, -320, ex + 140 * inner, -240, stroke(OUT, 40))
+        m = skia.Path(); m.addOval(skia.Rect.MakeLTRB(-240 * mouth, 70, 240 * mouth, 70 + 360 * mouth)); c.drawPath(m, fill(C(24, 0, 6)))
+        for i in range(8):
+            tx = -200 + i * 57
+            tri = skia.Path(); tri.moveTo(tx - 24, 96); tri.lineTo(tx + 24, 96); tri.lineTo(tx, 170); tri.close(); c.drawPath(tri, fill(C(230, 222, 190)))
+            tri = skia.Path(); tri.moveTo(tx - 22, 420); tri.lineTo(tx + 22, 420); tri.lineTo(tx, 360); tri.close(); c.drawPath(tri, fill(C(230, 222, 190)))
+    c.restore()
+    if k < 0.1: rect(c, 0, 0, W, H, fill(C(255, 255, 255, int(255 * (1 - k / 0.1)))))
+
 def store_bg(c, t):
     rect(c, -600, -600, W + 600, H + 600, lin(c, 0, 0, 0, H, [C(196, 206, 196), C(160, 170, 160)]))
     for i, x in enumerate((90, 520, 900)):
@@ -446,7 +482,7 @@ def store_bg(c, t):
     outlined_rect(c, 40, 560, 560, 680, C(220, 60, 50), 8, 10); text_c(c, "SALE", 300, 650, font("Anton", 90), C(255, 255, 255))
 
 def s_store(c, t, T_):
-    g0 = T("N4"); cough_t = frac("N4", 0.42) - g0; eyes_t = frac("N4", 0.74) - g0; u5 = T("U5") - g0
+    g0 = T("N4"); cough_t = frac("N4", 0.42) - g0; eyes_t = frac("N4", 0.8) - g0; u5 = T("U5") - g0
     zin = ease(clamp((t - eyes_t + 0.4) / 0.9)) * (1 - ease(clamp((t - u5 - 0.2) / 0.6)))
     c.save(); cam(c, lerp(1.3, 2.6, zin), lerp(560, 790, zin), lerp(1130, 1010, zin), *shake(t, 3 if t > u5 else 0))
     store_bg(c, t)
@@ -475,6 +511,8 @@ def s_store(c, t, T_):
     outlined_rect(c, bx - 60, by, bx + 60, by + 80, C(40, 120, 220), 6, 8)
     for i in range(3): outlined_rect(c, bx - 48 + i * 34, by - 50, bx - 22 + i * 34, by + 10, C(160, 210, 255), 4, 6)
     c.restore()
+    snap = T("JS1") + 0.6
+    if snap <= GT < T("U5") - 0.1: jump_face(c, GT - snap, CASHIER_INF, GT, 1.0)
 
 def s_lock(c, t, T_):
     c.save(); cam(c, 1.2, 520, 1080)
@@ -615,23 +653,31 @@ def s_hand(c, t, T_):
     c.restore()
 
 def s_peep2(c, t, T_):
-    g0 = T("N10"); stop_t = frac("N10", 0.3) - g0; turn_t = frac("N10", 0.62) - g0
+    g = GT; stop = E("N10") - 0.6; gone = T("JS2") + 0.5; snap = T("JS2") + 1.35
     def draw(c2, tt):
-        hallway(c2, tt, True, 0.9 if tt < stop_t else 0.0)
-        q = ease(clamp((tt - stop_t) / 0.25))
-        if tt < turn_t:
-            bang = math.sin(tt * 9) * (1 - q)
-            p = pose(lean=12 - 30 * q, head=-14 + 50 * q, uaL=-120 + 20 * bang + 100 * q, laL=-30, uaR=-110 - 20 * bang + 110 * q, laR=-20)
-            stick(c2, 560, 1960, 1050, p, HALE, face=1, expr="scared" if q < 0.5 else "sleep", look=0.4)
-        else:
+        hallway(c2, tt * (1 if g < gone else 2.3), True, 0.9 if g < stop else 0.0)
+        if g < stop:
+            bang = math.sin(tt * 9)
+            p = pose(lean=12, head=-14, uaL=-120 + 20 * bang, laL=-30, uaR=-110 - 20 * bang, laR=-20)
+            stick(c2, 560, 1960, 1050, p, HALE, face=1, expr="scared", look=0.4)
+        elif g < gone:
+            q = ease(clamp((g - stop) / (gone - stop)))
+            stick(c2, 560 + 20 * q, lerp(1960, 1020, q), lerp(1050, 260, q), walk(tt * 4, 0.6) if q > 0.15 else pose(head=30, uaL=-10, uaR=10),
+                  HALE, face=-1, expr="sleep", look=0.0, alpha=int(255 * (1 - 0.7 * q)))
+        elif g >= snap + 1.0:
             s_ = math.sin(tt * 18)
             p = pose(lean=18, head=-20, uaL=-150 + 25 * s_, laL=-40, uaR=-140 - 25 * s_, laR=-30)
             stick(c2, 560, 1960, 1120, p, HALE_Z, face=1, expr="z", look=0.2)
-    sx, sy = shake(t, 5 if t > turn_t else 0, 45)
-    c.save(); c.translate(sx, sy); peephole(c, t, draw, 1.0 + 0.05 * t + (0.25 * ease_out(clamp((t - turn_t) / 0.2)) if t > turn_t else 0)); c.restore()
-    if t > turn_t:
+    if snap <= g < snap + 1.0:
+        jump_face(c, g - snap, HALE_Z, g, 1.0)
+        path = skia.Path(); path.addCircle(W / 2, 900, 470)
+        c.save(); c.clipPath(path, skia.ClipOp.kDifference, True); rect(c, 0, 0, W, H, fill(C(4, 4, 6, 200))); c.restore()
+        return
+    sx, sy = shake(t, 6 if g > snap else 0, 45)
+    c.save(); c.translate(sx, sy); peephole(c, t, draw, 1.0 + 0.04 * t + (0.06 * ease(clamp((g - gone) / 0.85)) if g > gone else 0)); c.restore()
+    if g > snap + 1.0:
         for i in range(4):
-            a = clamp((t - turn_t - i * 0.25) / 0.3)
+            a = clamp((g - snap - 1.0 - i * 0.25) / 0.3)
             if a > 0: c.drawLine(140 + i * 50, 1440, 140 + i * 50 + 40 * a, 1440 + 300 * a, stroke(C(200, 200, 210, 200), 8))
 
 def s_rule2(c, t, T_):
@@ -862,17 +908,30 @@ def s_getdown(c, t, T_):
     c.restore()
 
 def s_corner(c, t, T_):
-    g0 = T("N18"); th = T("U12") - g0
-    fl = lightning_k(t, th + 0.2) + lightning_k(t, th + 0.55) * 0.6
-    c.save(); cam(c, 1.6, 760, 1230, *shake(t, 6 * fl))
+    g = GT; rv = T("JS3") + 0.45
+    f1 = lightning_k(g, rv) * 1.4; f2 = lightning_k(g, rv + 0.55) * 0.8
+    fl = min(1.0, f1 + f2)
+    c.save(); cam(c, 1.6, 760, 1230 if g < rv - 0.05 else 1060, *shake(t, 9 * fl))
     apt(c, t, lamp=0, curtains=0.3, city_lit=0, flash=fl)
-    curl = ease(clamp((t - th - 0.2) / 0.3))
+    if g >= rv:   # it was standing at the glass
+        c.save(); c.clipRect(skia.Rect.MakeLTRB(560, 520, 980, 1040))
+        if f1 > 0.05:
+            zs = dict(ZOMB, body=C(10, 12, 14), head=C(10, 12, 14), out=C(0, 0, 0))
+            stick(c, 760, 1500, 820, pose(lean=-6, head=-8, uaL=-150, laL=-20, uaR=-160, laR=10), zs, face=-1, expr="z", look=0.0)
+        elif g < rv + 0.55:
+            for ex in (-24, 22):
+                gl = fill(C(255, 230, 120, 150)); gl.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 10))
+                c.drawCircle(735 + ex, 730, 12, gl)
+        for hx in (640, 880):   # hand prints left on the glass
+            c.drawCircle(hx, 640, 34, fill(C(150, 170, 140, 90))); c.drawCircle(hx, 640, 34, stroke(C(90, 110, 80, 120), 4))
+        c.restore()
+    curl = ease(clamp((g - rv) / 0.25))
     p = mix(pose(lean=-4, head=14, ulL=70, llL=110, ulR=62, llR=120, uaL=34, laL=-104, uaR=50, laR=-112),
             pose(lean=22, head=30, ulL=95, llL=150, ulR=90, llR=150, uaL=60, laL=-120, uaR=70, laR=-120), curl)
     hero_reading(c, 830, 1500, 460, t, "scared" if curl > 0.2 else "worry", 0.2, p=p, face=-1)
-    dark(c, 0.55 * (1 - fl))
+    dark(c, 0.6 * (1 - fl))
     c.restore()
-    if fl > 0: rect(c, 0, 0, W, H, fill(C(220, 230, 255, int(80 * fl))))
+    if fl > 0: rect(c, 0, 0, W, H, fill(C(220, 230, 255, int(90 * fl))))
 
 def lightning_k(t, t0):
     k = t - t0
@@ -964,23 +1023,30 @@ def s_bridge(c, t, T_):
     c.restore()
 
 def s_turn(c, t, T_):
-    g0 = T("U14"); n24 = T("N24") - g0; turn = n24 - 0.4
-    z = 1.0 + 0.3 * ease(clamp(t / n24)) + 0.6 * ease(clamp((t - n24 - 0.4) / 2.0))
-    cx = lerp(560, 360, ease(clamp((t - n24) / 1.5)))
-    c.save(); cam(c, z, cx, 1120)
+    g = GT; js = T("JS4"); turn1 = js + 0.15; back = js + 2.55; snap = js + 3.3
+    if g < snap:
+        look_fog = ease(clamp((g - turn1) / 0.8)) * (1 - ease(clamp((g - back) / 0.6)))
+        z = 1.3 + 0.12 * ease(clamp((g - turn1) / 2.4)); cx = lerp(560, 300, look_fog)
+    else:
+        k = ease_out(clamp((g - snap) / 0.12)); z = lerp(1.6, 2.4, k) + 0.06 * (g - snap); cx = lerp(520, 470, k)
+    sx, sy = shake(g, 14 * (1 - clamp((g - snap) / 0.7)) if g >= snap else 1.5, 50)
+    c.save(); cam(c, z, cx, 1100 if g < snap else 1060, sx, sy)
     bridge(c, t + 10)
-    reveal = ease(clamp((t - n24 + 0.2) / 1.6))
     fog_layer(c, t + 10, 1.0)
-    stick(c, 170, 1400, 470, idle(t, 0.3), SUIT, face=1, look=0.4, alpha=int(255 * reveal))
-    if reveal > 0.1: helix_logo(c, 205, 1205, 0.4, int(255 * reveal))
-    face = 1 if t < turn else -1
-    q = clamp((t - turn) / 0.3)
-    hp = idle(t, 0.3) if t < turn else mix(idle(t), scared(t), q)
-    stick(c, 560, 1400, 430, hp, HERO, face=face, expr="worry" if t < turn else "shock", look=0.6, scarf_t=t, wind=0.4)
+    if g >= snap:
+        sp = pose(lean=8, head=-6, uaR=70, laR=-20, uaL=-10, laL=-8)
+        stick(c, 420, 1400, 470, sp, SUIT, face=1, look=0.6)
+        helix_logo(c, 455, 1205, 0.4)
+    if g < turn1: face, ex, hp = 1, "worry", idle(t, 0.3)
+    elif g < back: face, ex, hp = -1, "scared", mix(idle(t), scared(t), clamp((g - turn1) / 0.3))
+    elif g < snap: face, ex, hp = 1, "worry", idle(t, 0.5)
+    else: face, ex, hp = 1, "shock", scared(t)
+    stick(c, 560, 1400, 430, hp, HERO, face=face, expr=ex, look=0.6 if face > 0 else 0.9, scarf_t=t, wind=0.4)
     fog_layer(c, t + 30, 0.6)
     c.restore()
+    if snap <= g < snap + 0.1: rect(c, 0, 0, W, H, fill(C(255, 255, 255, int(255 * (1 - (g - snap) / 0.1)))))
     hb = 0.5 + 0.5 * math.sin(t * 7)
-    vignette(c, 0.5 + 0.25 * hb)
+    vignette(c, 0.5 + 0.3 * hb)
 
 def s_black(c, t, T_):
     rect(c, 0, 0, W, H, fill(C(0, 0, 0)))
@@ -1021,16 +1087,16 @@ def s_end(c, t, T_):
 # ---------------------------------------------------------------- shot list (start, end, fn, day, transition)
 def _shots():
     b = [
-     (0.0, s_pov, None, None), (T("U1") - 0.45, s_hook, None, "cut"), (E("N3") + 0.35, s_title, None, "cut"), (T("U3") - 0.55, s_day0, 0, "flash"),
+     (0.0, s_pov, None, None), (T("U1") - 0.4, s_hook, None, "cut"), (E("N3") + 0.35, s_title, None, "cut"), (T("U3") - 0.45, s_day0, 0, "flash"),
      (T("N4") - 0.05, s_store, 0, "punch"), (T("N5") - 0.05, s_lock, 0, "punch"), (T("N6") - 0.05, s_alert, 0, "flash"),
-     (T("N7") - 0.1, s_chaos, 0, "punch"), (T("U6") - 0.55, s_rule1, 1, "flash"),
+     (T("N7") - 0.1, s_chaos, 0, "punch"), (T("U6") - 1.2, s_rule1, 1, "cut"),
      (T("N8") - 0.1, s_knock, 3, "punch"), (frac("N8", 0.33), s_peep, 3, "punch"), (T("N9") - 0.1, s_hand, 3, "punch"),
-     (T("N10") - 0.1, s_peep2, 3, "punch"), (T("U8") - 0.55, s_rule2, 7, "flash"), (T("N11") - 0.1, s_roof, 7, "punch"),
-     (T("N12") - 0.05, s_box, 7, "punch"), (T("N13") - 0.1, s_power, 12, "flash"), (T("U9") - 0.55, s_rule3, 12, "cut"),
+     (T("N10") - 0.1, s_peep2, 3, "punch"), (T("U8") - 1.2, s_rule2, 7, "cut"), (T("N11") - 0.1, s_roof, 7, "punch"),
+     (T("N12") - 0.05, s_box, 7, "punch"), (T("N13") - 0.1, s_power, 12, "flash"), (T("U9") - 1.2, s_rule3, 12, "cut"),
      (T("N14") - 0.1, s_across, 12, "punch"), (T("N15") - 0.1, s_trucks, 18, "flash"), (T("N17") - 0.05, s_lookup, 18, "punch"),
      (T("U10") - 0.1, s_getdown, 18, "punch"), (T("N18") - 0.3, s_corner, 23, "flash"), (T("N19") - 0.05, s_nobody, 23, "punch"),
-     (T("U13") - 0.55, s_rule4, 29, "flash"), (T("N20") - 0.1, s_battery, 29, "punch"), (T("N21") - 0.1, s_run, 30, "flash"),
-     (T("N22") - 0.1, s_bridge, 30, "punch"), (T("U14") - 0.2, s_turn, 30, "cut"), (E("N24") + 0.55, s_black, None, "cut"),
+     (T("U13") - 0.45, s_rule4, 29, "flash"), (T("N20") - 0.1, s_battery, 29, "punch"), (T("N21") - 0.1, s_run, 30, "flash"),
+     (T("N22") - 0.1, s_bridge, 30, "punch"), (T("U14") - 0.2, s_turn, 30, "cut"), (E("N24") + 0.5, s_black, None, "cut"),
      (T("N25") - 0.15, s_cta, None, "punch"), (D["story_end"], s_end, None, "punch"),
     ]
     out = []
@@ -1068,7 +1134,49 @@ def grain(c, t):
     c.drawImageRect(GRAIN, skia.Rect.MakeLTRB(-ox, -oy, W - ox + 400, H - oy + 600), skia.SamplingOptions(), p)
 
 NOVIG = {s_title, s_alert, s_black, s_cta, s_end, s_battery, s_chaos, s_trucks, s_peep, s_peep2, s_across, s_lookup, s_turn}
+GT = 0.0
+STILL = None
+RULES = [("U6", "RULE #1"), ("U8", "RULE #2"), ("U9", "RULE #3")]
+def draw_rulecards(c, t):
+    for k, lab in RULES:
+        a = T(k) - 1.15; b = T(k) - 0.3
+        if a <= t < b:
+            lt = t - a; q = back_out(clamp(lt / 0.18), 2.4); fade = 1 - clamp((t - (b - 0.15)) / 0.15)
+            rect(c, 0, 0, W, H, fill(C(6, 0, 2, int(235 * fade))))
+            sx, sy = shake(t, 8, 50)
+            c.save(); c.translate(W / 2 + sx, 1000 + sy); c.scale(q, q)
+            for dx, col in ((-9, C(0, 255, 255, int(120 * fade))), (9, C(255, 0, 60, int(160 * fade)))):
+                text_c(c, lab, dx, 0, font("Lucky", 200), col)
+            text_c(c, lab, 0, 0, font("Lucky", 200), C(255, 40, 50, int(255 * fade)), C(0, 0, 0, int(255 * fade)), 26)
+            c.restore()
+
+def draw_countdown(c, fn, lt):
+    base = {"s_day0": 16 * 3600 + 34 * 60 + 12, "s_store": 14 * 3600 + 7 * 60 + 40, "s_lock": 119, "s_alert": 59}.get(fn.__name__)
+    if base is None: return
+    rem = max(0, int(base - lt * (1.0 if fn.__name__ != "s_alert" else 1.0)))
+    hms = f"{rem // 3600:02d}:{rem // 60 % 60:02d}:{rem % 60:02d}"
+    blink = (lt % 1.0) < 0.5 or rem > 600
+    c.save(); c.translate(W / 2, 318)
+    rrect(c, -250, -38, 250, 38, 38, fill(C(150, 0, 10, 220) if blink else C(80, 0, 6, 220)))
+    text_c(c, "MIDNIGHT IN  " + hms, 0, 16, font("Anton", 44), C(255, 255, 255))
+    c.restore()
+
+def danger_ranges():
+    return [(frac("N4", 0.8), E("U5")), (T("N6"), E("N7") + 0.3), (T("JS2") + 1.35, E("N10b")), (T("N21"), E("N21")), (T("JS4") + 3.3, E("N24"))]
+DANGER = None
+def draw_danger(c, t):
+    global DANGER
+    if DANGER is None: DANGER = danger_ranges()
+    for a, b in DANGER:
+        if a <= t < b:
+            k = min(clamp((t - a) / 0.3), clamp((b - t) / 0.3)); hb = 0.5 + 0.5 * math.sin(t * 7.5)
+            c.drawRect(skia.Rect.MakeLTRB(0, 0, W, H), rad(W / 2, H * 0.45, H * 0.8, [C(255, 0, 20, 0), C(255, 0, 20, int(40 * k)), C(200, 0, 10, int((110 + 60 * hb) * k))], [0, 0.5, 1.0]))
+
+HANDHELD_OFF = None
 def frame(c, t):
+    global GT, HANDHELD_OFF
+    GT = t
+    if HANDHELD_OFF is None: HANDHELD_OFF = {s_title, s_black, s_cta, s_end, s_battery, s_alert}
     c.clear(C(0, 0, 0))
     for a, b, fn, d, tr in SHOTS:
         if a <= t < b:
@@ -1076,13 +1184,20 @@ def frame(c, t):
             c.save()
             if tr in ("punch", "flash") and lt < 0.3:
                 z = 1 + 0.07 * (1 - ease_out(lt / 0.3)); c.translate(W / 2, H / 2); c.scale(z, z); c.translate(-W / 2, -H / 2)
+            if fn not in HANDHELD_OFF:   # nervous handheld camera + slow creeping push-in
+                z = 1.0 + 0.04 * clamp(lt / max(1.0, b - a))
+                c.translate(W / 2 + 6 * math.sin(t * 1.3) + 3 * math.sin(t * 3.1), H / 2 + 5 * math.cos(t * 1.1) + 2 * math.sin(t * 2.7))
+                c.rotate(0.45 * math.sin(t * 0.8)); c.scale(z, z); c.translate(-W / 2, -H / 2)
             fn(c, lt, b - a)
             c.restore()
+            draw_countdown(c, fn, lt)
             if tr == "flash" and lt < 0.2: rect(c, 0, 0, W, H, fill(C(255, 255, 255, int(200 * (1 - lt / 0.2)))))
             if fn not in NOVIG: vignette(c, 0.5)
             break
+    draw_danger(c, t)
     draw_chat(c, t)
     draw_banners(c, t)
+    draw_rulecards(c, t)
     draw_counter(c, t)
     if day_at(t) is not None or t < E("N3") + 0.3: draw_caption(c, t)
     grain(c, t)

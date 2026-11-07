@@ -43,3 +43,10 @@ the dad arranged for him to be there but he double-crosses / or helps.) Keep the
 - Texts shown in a dark-mode phone UI ("Unknown Number / No Caller ID"), hero's replies in orange bubbles.
 - HELIX: teal (#28D2C4) hexagon logo with a double helix; white suits with teal glowing visors.
 - Code: unk1.py (scenes), timeline.py (voice cutting + timing), audio_unk.py (score/SFX). Reuses ../stick100/rig.py + world.py.
+
+## Tension rules (Part 1 "tense cut" — use in every part)
+- Frame 1 must already be scary/intriguing (the text banner slams in with a BRAAM). Nothing calm in the first 2 seconds.
+- Narrator: ElevenLabs eleven_v3 with audio tags ([whispers], [scared], [breathing heavily], [panicked]), slightly sped up, long pauses squeezed.
+- Jump scares (~1 per 45 s, never more): build tension → near-total SILENCE (only heartbeat) → misdirect/fake-out → face slam + screech stinger + flash.
+  Part 1: JS1 cashier face slam · JS2 empty peephole fake-out → neighbor's face slams the lens · JS3 lightning reveals a zombie at the window (gone on the next flash, handprints left) · JS4 "Turn around" → nothing there → turns back → white suit's hand on his shoulder.
+- Big RULE #N cards, red "MIDNIGHT IN" countdown, red heartbeat pulse in danger moments, constant nervous handheld camera.
