@@ -47,6 +47,6 @@ the dad arranged for him to be there but he double-crosses / or helps.) Keep the
 ## Tension rules (Part 1 "tense cut" — use in every part)
 - Frame 1 must already be scary/intriguing (the text banner slams in with a BRAAM). Nothing calm in the first 2 seconds.
 - Narrator: ElevenLabs eleven_v3 with audio tags ([whispers], [scared], [breathing heavily], [panicked]), slightly sped up, long pauses squeezed.
-- Jump scares (~1 per 45 s, never more): build tension → near-total SILENCE (only heartbeat) → misdirect/fake-out → face slam + screech stinger + flash.
+- Jump scares (~1 per 45 s): build tension → near-total SILENCE (heartbeat) → fake-out → grayscale "screamer" face (hollow black eyes, impossibly long stretched jaw, glitch/negative flash) at near full volume (~15 dB louder than the narration; body mix sits lower).
   Part 1: JS1 cashier face slam · JS2 empty peephole fake-out → neighbor's face slams the lens · JS3 lightning reveals a zombie at the window (gone on the next flash, handprints left) · JS4 "Turn around" → nothing there → turns back → white suit's hand on his shoulder.
 - Big RULE #N cards, red "MIDNIGHT IN" countdown, red heartbeat pulse in danger moments, constant nervous handheld camera.

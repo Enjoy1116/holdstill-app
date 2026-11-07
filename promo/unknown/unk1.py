@@ -424,6 +424,72 @@ def s_day0(c, t, T_):
     dark(c, 0.25)
     c.restore()
 
+def screamer(c, k, t, seed=0):
+    """Grayscale stretched-jaw screamer: hollow black eyes, impossibly long gaping mouth. k = seconds since the snap."""
+    rnd = random.Random(int(t * 60) * 7 + seed)
+    rect(c, -60, -60, W + 60, H + 60, fill(C(0, 0, 0)))
+    if 0.04 <= k < 0.075:   # one-frame negative flash
+        rect(c, -60, -60, W + 60, H + 60, fill(C(235, 235, 235)))
+    sc = lerp(0.5, 1.12, ease_out(clamp(k / 0.09))) + 0.06 * k
+    jaw = lerp(0.7, 1.0, ease_out(clamp(k / 0.35)))
+    jx, jy = rnd.uniform(-18, 18) * (1.6 - clamp(k)), rnd.uniform(-14, 14) * (1.6 - clamp(k))
+    c.save(); c.translate(W / 2 + jx, 760 + jy); c.rotate(rnd.uniform(-2.2, 2.2)); c.scale(sc, sc); c.translate(-540, -760)
+    bot = 900 + 900 * jaw
+    head = skia.Path()
+    head.moveTo(250, 560); head.cubicTo(230, 250, 420, 150, 560, 160); head.cubicTo(720, 165, 880, 260, 860, 560)
+    head.cubicTo(850, 760, 790, 880, 760, 1000); head.cubicTo(740, bot - 450, 720, bot - 160, 640, bot - 40)
+    head.cubicTo(590, bot + 10, 500, bot + 10, 450, bot - 50); head.cubicTo(380, bot - 170, 360, bot - 450, 340, 1000)
+    head.cubicTo(300, 880, 260, 760, 250, 560); head.close()
+    p = fill(C(0, 0, 0)); p.setShader(skia.GradientShader.MakeRadial(skia.Point(600, 420), 900, [C(240, 240, 240), C(170, 170, 170), C(60, 60, 60), C(10, 10, 10)], [0, 0.3, 0.7, 1.0]))
+    c.drawPath(head, p)
+    edge = stroke(C(0, 0, 0, 200), 60); edge.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 30)); c.drawPath(head, edge)
+    c.save(); c.clipPath(head, skia.ClipOp.kIntersect, True)
+    sh = fill(C(0, 0, 0)); sh.setShader(skia.GradientShader.MakeLinear([skia.Point(200, 0), skia.Point(820, 0)], [C(0, 0, 0, 190), C(0, 0, 0, 40), C(0, 0, 0, 0)], [0, 0.55, 1.0]))
+    rect(c, 0, 0, W, H + 400, sh)                                            # harsh side light
+    def blurline(x0, y0, x1, y1, col, w, b):
+        q = stroke(col, w); q.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, b)); c.drawLine(x0, y0, x1, y1, q)
+    for ex in (430, 660):
+        g = fill(C(0, 0, 0, 200)); g.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 55)); c.drawCircle(ex, 480, 150, g)
+        blurline(ex - 120, 345, ex + 110, 340, C(0, 0, 0, 170), 40, 22)          # brow ridge
+    for x, d in ((395, -1), (705, 1)):                                        # sunken cheeks + sinews along the jaw
+        blurline(x, 760, x + 20 * d, bot - 260, C(0, 0, 0, 220), 70, 30)
+        blurline(x + 45 * -d, 820, x + 35 * -d, bot - 280, C(230, 230, 230, 120), 7, 3)
+        blurline(x + 70 * -d, 860, x + 60 * -d, bot - 320, C(30, 30, 30, 160), 5, 2)
+    for i in range(6):                                                         # forehead creases
+        y = 230 + i * 18; c.drawArc(skia.Rect.MakeLTRB(420 - i * 6, y, 680 + i * 6, y + 60), 200, 140, False, stroke(C(40, 40, 40, 90), 3))
+    rg = random.Random(seed)
+    for i in range(900):                                                       # skin grain
+        x, y = rg.uniform(250, 860), rg.uniform(160, bot); v = rg.randint(0, 255)
+        c.drawCircle(x, y, rg.uniform(0.8, 2.4), fill(C(v, v, v, 40)))
+    c.restore()
+    for ex in (430, 660):   # hollow black eyes
+        e = fill(C(0, 0, 0)); e.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 14))
+        c.drawOval(skia.Rect.MakeLTRB(ex - 95, 380, ex + 95, 580), e)
+        c.drawOval(skia.Rect.MakeLTRB(ex - 80, 395, ex + 80, 565), fill(C(0, 0, 0)))
+        c.drawArc(skia.Rect.MakeLTRB(ex - 22, 450, ex + 22, 494), 200, 140, False, stroke(C(150, 150, 150), 5))
+    for nx in (520, 572):   # skull nostrils
+        n = fill(C(10, 10, 10)); n.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 6))
+        c.drawOval(skia.Rect.MakeLTRB(nx - 18, 690, nx + 18, 722), n)
+    mouth = skia.Path()     # the endless mouth
+    mt, mb = 800, bot - 120
+    mouth.moveTo(440, mt); mouth.cubicTo(500, mt - 20, 600, mt - 20, 660, mt)
+    mouth.cubicTo(690, mt + 300, 670, mb - 200, 640, mb); mouth.cubicTo(600, mb + 40, 500, mb + 40, 460, mb)
+    mouth.cubicTo(420, mb - 200, 410, mt + 300, 440, mt); mouth.close()
+    c.drawPath(mouth, fill(C(4, 4, 4)))
+    rim = stroke(C(200, 200, 200, 60), 4); rim.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 4)); c.drawPath(mouth, rim)
+    for i in range(18):     # stringy teeth / strands top and bottom
+        x = 455 + i * 11 + rnd.uniform(-3, 3)
+        c.drawLine(x, mt + 4, x + rnd.uniform(-4, 4), mt + 40 + rnd.uniform(0, 70), stroke(C(215, 215, 215, 210), 3.2))
+        x2 = 470 + i * 9 + rnd.uniform(-3, 3)
+        c.drawLine(x2, mb - 4, x2 + rnd.uniform(-4, 4), mb - 30 - rnd.uniform(0, 60), stroke(C(200, 200, 200, 190), 3))
+    for yy in (mt + (mb - mt) * 0.38, mt + (mb - mt) * 0.62):   # saliva strands mid-mouth
+        for i in range(5):
+            x = 520 + i * 14 + rnd.uniform(-4, 4); c.drawLine(x, yy - 40, x + rnd.uniform(-3, 3), yy + 40, stroke(C(170, 170, 170, 140), 2.4))
+    c.restore()
+    vignette(c, 0.95)
+    for i in range(14):     # heavy video noise / scanlines
+        y = rnd.uniform(0, H); rect(c, 0, y, W, y + rnd.uniform(2, 9), fill(C(255, 255, 255, int(rnd.uniform(8, 40)))))
+
 def jump_face(c, k, st, t, mouth=1.0):
     """Full-screen face slam. k = 0..1 time since the snap (scale settles fast)."""
     rect(c, -50, -50, W + 50, H + 50, fill(C(40, 0, 6)))
@@ -512,7 +578,7 @@ def s_store(c, t, T_):
     for i in range(3): outlined_rect(c, bx - 48 + i * 34, by - 50, bx - 22 + i * 34, by + 10, C(160, 210, 255), 4, 6)
     c.restore()
     snap = T("JS1") + 0.6
-    if snap <= GT < T("U5") - 0.1: jump_face(c, GT - snap, CASHIER_INF, GT, 1.0)
+    if snap <= GT < T("U5") - 0.1: screamer(c, GT - snap, GT, 1)
 
 def s_lock(c, t, T_):
     c.save(); cam(c, 1.2, 520, 1080)
@@ -669,9 +735,7 @@ def s_peep2(c, t, T_):
             p = pose(lean=18, head=-20, uaL=-150 + 25 * s_, laL=-40, uaR=-140 - 25 * s_, laR=-30)
             stick(c2, 560, 1960, 1120, p, HALE_Z, face=1, expr="z", look=0.2)
     if snap <= g < snap + 1.0:
-        jump_face(c, g - snap, HALE_Z, g, 1.0)
-        path = skia.Path(); path.addCircle(W / 2, 900, 470)
-        c.save(); c.clipPath(path, skia.ClipOp.kDifference, True); rect(c, 0, 0, W, H, fill(C(4, 4, 6, 200))); c.restore()
+        screamer(c, g - snap, g, 2)
         return
     sx, sy = shake(t, 6 if g > snap else 0, 45)
     c.save(); c.translate(sx, sy); peephole(c, t, draw, 1.0 + 0.04 * t + (0.06 * ease(clamp((g - gone) / 0.85)) if g > gone else 0)); c.restore()
@@ -932,6 +996,8 @@ def s_corner(c, t, T_):
     dark(c, 0.6 * (1 - fl))
     c.restore()
     if fl > 0: rect(c, 0, 0, W, H, fill(C(220, 230, 255, int(90 * fl))))
+    sc3 = rv + 0.62
+    if sc3 <= g < rv + 1.25: screamer(c, g - sc3, g, 3)
 
 def lightning_k(t, t0):
     k = t - t0
@@ -1173,6 +1239,11 @@ def draw_danger(c, t):
             c.drawRect(skia.Rect.MakeLTRB(0, 0, W, H), rad(W / 2, H * 0.45, H * 0.8, [C(255, 0, 20, 0), C(255, 0, 20, int(40 * k)), C(200, 0, 10, int((110 + 60 * hb) * k))], [0, 0.5, 1.0]))
 
 HANDHELD_OFF = None
+def in_screamer(t):
+    for a, b in ((T("JS1") + 0.6, T("U5") - 0.1), (T("JS2") + 1.35, T("JS2") + 2.35), (T("JS3") + 1.07, T("JS3") + 1.7)):
+        if a <= t < b: return True
+    return False
+
 def frame(c, t):
     global GT, HANDHELD_OFF
     GT = t
@@ -1190,10 +1261,12 @@ def frame(c, t):
                 c.rotate(0.45 * math.sin(t * 0.8)); c.scale(z, z); c.translate(-W / 2, -H / 2)
             fn(c, lt, b - a)
             c.restore()
-            draw_countdown(c, fn, lt)
+            if not in_screamer(t): draw_countdown(c, fn, lt)
             if tr == "flash" and lt < 0.2: rect(c, 0, 0, W, H, fill(C(255, 255, 255, int(200 * (1 - lt / 0.2)))))
             if fn not in NOVIG: vignette(c, 0.5)
             break
+    if in_screamer(t):
+        grain(c, t); return
     draw_danger(c, t)
     draw_chat(c, t)
     draw_banners(c, t)

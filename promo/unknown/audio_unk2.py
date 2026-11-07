@@ -146,9 +146,9 @@ def heartbeats(a, b, i0=0.9, i1=0.55, g=1.0):
 from rig import lerp
 
 # silence windows: everything except heartbeat/voice is pulled down so the scare hits from silence
-QUIET = [(T("JS1") + 0.05, T("JS1") + 0.6), (T("JS2") - 0.1, T("JS2") + 1.35), (T("JS3") + 0.05, T("JS3") + 0.45),
+QUIET = [(T("JS1") + 0.05, T("JS1") + 0.6), (T("JS2") - 0.1, T("JS2") + 1.35), (T("JS3") + 0.05, T("JS3") + 0.45), (T("JS3") + 0.8, T("JS3") + 1.07),
          (T("JS4") + 0.05, T("JS4") + 3.3)]
-SCARES = [T("JS1") + 0.6, T("JS2") + 1.35, T("JS3") + 0.45, T("JS4") + 3.3]
+SCARES = [T("JS1") + 0.6, T("JS2") + 1.35, T("JS3") + 1.07, T("JS4") + 3.3]
 
 # --- hook: instant hit
 place(sfx, 0.0, braam(3.5), 1.0); place(sfx, 0.0, impact(1.2), 0.8)
@@ -248,7 +248,6 @@ for a, b in QUIET:
         t = a
         while t < b - 0.2: place(hb_keep, t, heartbeat(), 1.0); t += 0.62
 sfx *= gate
-for at in SCARES: stinger(at, 1.25 if at == SCARES[-1] else 1.0)
 sfx += hb_keep * 1.1
 # ---------------- voices
 def read_wav(p):
@@ -287,8 +286,19 @@ music *= 0.38 / (np.abs(music).max() + 1e-9) * 2.0
 amb *= 0.3 / (np.abs(amb).max() + 1e-9)
 mix = voice + music * duck + sfx * 0.42 * (0.55 + 0.45 * duck) + amb * duck
 mix = np.tanh(mix * 1.1) / np.tanh(1.1)
-rms = np.sqrt(np.mean(mix[int(0.5 * SR):] ** 2)); mix *= 0.2 / rms
-mix = np.clip(mix, -0.98, 0.98)
+rms = np.sqrt(np.mean(mix[int(0.5 * SR):] ** 2)); mix *= 0.14 / rms      # body sits lower so the scares can hit HARD
+mix = np.clip(mix, -0.9, 0.9)
+# --- jump-scare blasts, added AFTER the limiter at near full scale (way louder than the voice)
+def blast(seed):
+    d = 1.3; t = tt(d); r = np.random.default_rng(seed)
+    s = screech(d, seed) * 1.0 + scream(d, 820, seed) * 0.8 + scream(d, 1250, seed + 9) * 0.6
+    s += np.tanh(r.uniform(-1, 1, len(t)) * 3) * 0.5 * np.exp(-t * 3)          # noise blast
+    low = boom(d) * 1.3 + impact(d) * 1.0
+    s = np.tanh((s + low) * 3.0) * env(len(t), 0.002, 0.35)
+    return s / (np.abs(s).max() + 1e-9)
+for i, at in enumerate(SCARES):
+    b = blast(i + 3) * 0.97; k = int(at * SR); n = min(len(b), N - k)
+    mix[k:k + n] = np.clip(mix[k:k + n] * 0.15 + b[:n], -0.99, 0.99)
 fade = int(0.8 * SR); mix[-fade:] *= np.linspace(1, 0, fade)
 with wave.open("mix.wav", "wb") as o:
     o.setnchannels(1); o.setsampwidth(2); o.setframerate(SR); o.writeframes((mix * 32767).astype(np.int16).tobytes())
