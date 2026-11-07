@@ -36,8 +36,10 @@ the dad arranged for him to be there but he double-crosses / or helps.) Keep the
 
 ## Production notes
 - Narrator: ElevenLabs "Angelo Marcello" (1LdBU508nR8vgkGDFHqP), model eleven_v4_turbo, via Speko.
-- Unknown number voice: Cartesia "Edric" (921034a2-aace-4ef7-87b1-b9bc455c9a15), sonic-3, speed 0.9,
-  phone-filtered (300–3600 Hz band-pass + light saturation) — keep the SAME voice every part (it's the dad).
+- Unknown number voice: ROBOT / voice-changer (Tomer's pick). OpenAI "onyx" (gpt-4o-mini-tts) with instructions
+  "cold, emotionless AI, flat deep monotone", then robot FX in audio_unk.py (52 Hz ring mod + metallic comb + buzz carrier
+  + light bit-crush). Keep it the SAME every part. Story reason: the dad uses a voice changer so HELIX can't identify him —
+  the finale can drop the effect to reveal his real voice.
 - Texts shown in a dark-mode phone UI ("Unknown Number / No Caller ID"), hero's replies in orange bubbles.
 - HELIX: teal (#28D2C4) hexagon logo with a double helix; white suits with teal glowing visors.
 - Code: unk1.py (scenes), timeline.py (voice cutting + timing), audio_unk.py (score/SFX). Reuses ../stick100/rig.py + world.py.

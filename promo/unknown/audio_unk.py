@@ -229,9 +229,22 @@ def bandpass(x, lo, hi):
     X = np.fft.rfft(x); f = np.fft.rfftfreq(len(x), 1 / SR)
     m = np.clip((f - lo * 0.7) / (lo * 0.3), 0, 1) * np.clip((hi * 1.3 - f) / (hi * 0.3), 0, 1)
     return np.fft.irfft(X * m, len(x))
-ph = bandpass(unk, 300, 3600); ph = np.tanh(ph * 3.0) / 3.0 * 1.6
-ph = ph + 0.25 * np.roll(ph, int(0.013 * SR)) + 0.12 * np.roll(ph, int(0.029 * SR))
-unk_f = 0.72 * ph / (np.abs(ph).max() + 1e-9) + 0.28 * unk / (np.abs(unk).max() + 1e-9)
+from scipy.signal import lfilter
+def robot(x):
+    tt_ = np.arange(len(x)) / SR
+    x = x / (np.abs(x).max() + 1e-9)
+    ring = x * np.sin(2 * np.pi * 52 * tt_)                         # ring modulator = classic robot
+    y = 0.55 * x + 0.75 * ring
+    d = int(0.0055 * SR); a = np.zeros(d + 1); a[0] = 1; a[d] = -0.55   # metallic comb resonance
+    y = lfilter([1.0], a, y)
+    ev = lp_fast(np.abs(x), int(0.015 * SR))                         # buzzy carrier following the voice (vocoder feel)
+    buzz_ = np.sign(np.sin(2 * np.pi * 98 * tt_)) * 0.5 + np.sign(np.sin(2 * np.pi * 147 * tt_)) * 0.3
+    y = y / (np.abs(y).max() + 1e-9) + lp_fast(buzz_, 6) * ev * 0.9
+    q = np.round(y / (np.abs(y).max() + 1e-9) * 24) / 24              # light bit-crush
+    y = 0.7 * y / (np.abs(y).max() + 1e-9) + 0.3 * q
+    y = bandpass(y, 180, 5200)
+    return np.tanh(y * 2.2) / np.tanh(2.2)
+unk_f = robot(unk)
 unk_f *= 0.95 / (np.abs(unk_f).max() + 1e-9)
 nar *= 0.95 / (np.abs(nar).max() + 1e-9)
 def rms_active(x):
