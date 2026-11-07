@@ -1,0 +1,422 @@
+{
+ "events": [
+  {
+   "id": "U1",
+   "kind": "U",
+   "t": 0.2,
+   "end": 5.65,
+   "bubbles": [
+    [
+     0.2,
+     "In 24 hours, the world ends."
+    ],
+    [
+     3.2,
+     "Do exactly what I say, and you'll live."
+    ]
+   ]
+  },
+  {
+   "id": "N1",
+   "kind": "N",
+   "t": 6.38,
+   "end": 11.18,
+   "text": "The day before the world ended... I got a text, from a number I didn't know."
+  },
+  {
+   "id": "N2",
+   "kind": "N",
+   "t": 11.68,
+   "end": 14.88,
+   "text": "I thought it was a prank. Until the next text came in."
+  },
+  {
+   "id": "U2",
+   "kind": "U",
+   "t": 15.37,
+   "end": 17.42,
+   "bubbles": [
+    [
+     15.37,
+     "You're wearing the orange scarf right now."
+    ]
+   ]
+  },
+  {
+   "id": "N3",
+   "kind": "N",
+   "t": 18.45,
+   "end": 20.65,
+   "text": "I was. And I was home alone."
+  },
+  {
+   "id": "U3",
+   "kind": "U",
+   "t": 22.84,
+   "end": 29.69,
+   "bubbles": [
+    [
+     22.84,
+     "Don't go to school tomorrow."
+    ],
+    [
+     24.94,
+     "Tonight: buy water, canned food, batteries."
+    ],
+    [
+     28.34,
+     "Go. NOW."
+    ]
+   ]
+  },
+  {
+   "id": "H1",
+   "kind": "H",
+   "t": 30.24,
+   "end": 31.715,
+   "text": "who is this??"
+  },
+  {
+   "id": "U4",
+   "kind": "U",
+   "t": 31.965,
+   "end": 34.415,
+   "bubbles": [
+    [
+     31.965,
+     "No time."
+    ],
+    [
+     33.865,
+     "Trust me."
+    ]
+   ]
+  },
+  {
+   "id": "N4",
+   "kind": "N",
+   "t": 35.245,
+   "end": 42.745,
+   "text": "So I went. The store was almost empty. The cashier kept coughing. And his eyes... were yellow."
+  },
+  {
+   "id": "U5",
+   "kind": "U",
+   "t": 43.235,
+   "end": 49.185,
+   "bubbles": [
+    [
+     43.235,
+     "Don't touch him."
+    ],
+    [
+     44.635,
+     "Go home."
+    ],
+    [
+     46.435,
+     "Lock your door at exactly 11:58."
+    ]
+   ]
+  },
+  {
+   "id": "N5",
+   "kind": "N",
+   "t": 50.115,
+   "end": 52.315,
+   "text": "At 11:58, I locked the door."
+  },
+  {
+   "id": "N6",
+   "kind": "N",
+   "t": 53.135,
+   "end": 57.235,
+   "text": "At 11:59, every phone in the city started screaming."
+  },
+  {
+   "id": "N7",
+   "kind": "N",
+   "t": 57.955,
+   "end": 59.655,
+   "text": "Then the real screaming started."
+  },
+  {
+   "id": "U6",
+   "kind": "U",
+   "t": 60.645,
+   "end": 66.595,
+   "bubbles": [
+    [
+     60.645,
+     "RULE 1: Don't open the door. For anyone."
+    ],
+    [
+     65.245,
+     "Not even people you know."
+    ]
+   ]
+  },
+  {
+   "id": "N8",
+   "kind": "N",
+   "t": 67.625,
+   "end": 73.425,
+   "text": "On day 3, someone knocked. It was Mr. Hale, my neighbor. He was begging me to let him in."
+  },
+  {
+   "id": "N9",
+   "kind": "N",
+   "t": 74.045,
+   "end": 77.145,
+   "text": "My hand was already on the lock... when my phone buzzed."
+  },
+  {
+   "id": "U7",
+   "kind": "U",
+   "t": 77.635,
+   "end": 78.185,
+   "bubbles": [
+    [
+     77.635,
+     "Don't."
+    ]
+   ]
+  },
+  {
+   "id": "N10",
+   "kind": "N",
+   "t": 79.715,
+   "end": 84.815,
+   "text": "I didn't open it. 10 seconds later, he stopped begging. And started scratching."
+  },
+  {
+   "id": "U8",
+   "kind": "U",
+   "t": 85.805,
+   "end": 90.055,
+   "bubbles": [
+    [
+     85.805,
+     "RULE 2: The roof. 3 AM."
+    ],
+    [
+     89.505,
+     "Come alone."
+    ]
+   ]
+  },
+  {
+   "id": "N11",
+   "kind": "N",
+   "t": 90.885,
+   "end": 96.885,
+   "text": "At 3 AM, something buzzed over the city. A drone. It dropped a box, right at my feet."
+  },
+  {
+   "id": "N12",
+   "kind": "N",
+   "t": 97.605,
+   "end": 105.705,
+   "text": "Inside, a radio, a flashlight, and a map. One place was circled in red. The bridge. Day 30."
+  },
+  {
+   "id": "N13",
+   "kind": "N",
+   "t": 106.925,
+   "end": 108.825,
+   "text": "On day 12, the power died."
+  },
+  {
+   "id": "U9",
+   "kind": "U",
+   "t": 109.315,
+   "end": 113.765,
+   "bubbles": [
+    [
+     109.315,
+     "RULE 3: They're drawn to light."
+    ],
+    [
+     112.815,
+     "Keep the curtains shut."
+    ]
+   ]
+  },
+  {
+   "id": "N14",
+   "kind": "N",
+   "t": 114.495,
+   "end": 120.495,
+   "text": "Across the street, someone turned on a flashlight. 30 seconds later... it went out. Forever."
+  },
+  {
+   "id": "N15",
+   "kind": "N",
+   "t": 121.715,
+   "end": 127.515,
+   "text": "Day 18. Trucks came. Men in white suits, with a logo I had never seen before."
+  },
+  {
+   "id": "N16",
+   "kind": "N",
+   "t": 128.135,
+   "end": 130.935,
+   "text": "They weren't killing the zombies. They were collecting them."
+  },
+  {
+   "id": "N17",
+   "kind": "N",
+   "t": 131.655,
+   "end": 134.255,
+   "text": "Then one of them looked up. Right at my window."
+  },
+  {
+   "id": "U10",
+   "kind": "U",
+   "t": 134.545,
+   "end": 136.595,
+   "bubbles": [
+    [
+     134.545,
+     "GET DOWN."
+    ],
+    [
+     136.345,
+     "NOW."
+    ]
+   ]
+  },
+  {
+   "id": "N18",
+   "kind": "N",
+   "t": 138.025,
+   "end": 140.525,
+   "text": "On day 23, I finally asked."
+  },
+  {
+   "id": "H2",
+   "kind": "H",
+   "t": 141.065,
+   "end": 143.29,
+   "text": "why are you helping me?"
+  },
+  {
+   "id": "U11",
+   "kind": "U",
+   "t": 143.84,
+   "end": 144.99,
+   "bubbles": [
+    [
+     143.84,
+     "Because I owe you."
+    ]
+   ]
+  },
+  {
+   "id": "H3",
+   "kind": "H",
+   "t": 145.54,
+   "end": 146.865,
+   "text": "who ARE you"
+  },
+  {
+   "id": "U12",
+   "kind": "U",
+   "t": 147.715,
+   "end": 151.365,
+   "bubbles": [
+    [
+     147.715,
+     "You used to be scared of thunder."
+    ],
+    [
+     150.715,
+     "You still are."
+    ]
+   ]
+  },
+  {
+   "id": "N19",
+   "kind": "N",
+   "t": 152.495,
+   "end": 154.795,
+   "text": "Nobody knew that. Nobody alive."
+  },
+  {
+   "id": "U13",
+   "kind": "U",
+   "t": 155.785,
+   "end": 162.935,
+   "bubbles": [
+    [
+     155.785,
+     "Tomorrow. 6 AM."
+    ],
+    [
+     157.785,
+     "Get to the bridge."
+    ],
+    [
+     160.185,
+     "Don't stop. Don't look back."
+    ]
+   ]
+  },
+  {
+   "id": "N20",
+   "kind": "N",
+   "t": 163.665,
+   "end": 165.265,
+   "text": "My phone was at 1%."
+  },
+  {
+   "id": "N21",
+   "kind": "N",
+   "t": 166.585,
+   "end": 171.685,
+   "text": "Day 30. I ran. I didn't stop. And they heard every single step."
+  },
+  {
+   "id": "N22",
+   "kind": "N",
+   "t": 172.405,
+   "end": 175.905,
+   "text": "I made it to the bridge. It was empty. Nobody was there."
+  },
+  {
+   "id": "N23",
+   "kind": "N",
+   "t": 176.925,
+   "end": 179.425,
+   "text": "Then my phone buzzed. One last time."
+  },
+  {
+   "id": "U14",
+   "kind": "U",
+   "t": 180.415,
+   "end": 181.165,
+   "bubbles": [
+    [
+     180.415,
+     "Turn around."
+    ]
+   ]
+  },
+  {
+   "id": "N24",
+   "kind": "N",
+   "t": 183.031,
+   "end": 185.631,
+   "text": "Behind me... was a man in a white suit."
+  },
+  {
+   "id": "N25",
+   "kind": "N",
+   "t": 187.451,
+   "end": 190.451,
+   "text": "Who do you think the unknown number is? Follow for part 2."
+  }
+ ],
+ "story_end": 190.991,
+ "total": 193.591
+}
