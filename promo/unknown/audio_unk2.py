@@ -150,9 +150,11 @@ QUIET = [(T("JS1") + 0.05, T("JS1") + 0.6), (T("JS2") - 0.1, T("JS2") + 1.35), (
          (T("JS4") + 0.05, T("JS4") + 3.3)]
 SCARES = [T("JS1") + 0.6, T("JS2") + 1.35, T("JS3") + 1.07, T("JS4") + 3.3]
 
-# --- hook: instant hit
-place(sfx, 0.0, braam(3.5), 1.0); place(sfx, 0.0, impact(1.2), 0.8)
-drone_pad(0, A("s_title"), [26, 27, 33, 38], 0.5, 0.05)
+# --- cold open: a hit on every flash cut, then the story starts
+for ct in (0.0, 0.6, 1.1, 1.6, 2.05): place(sfx, ct, impact(0.8), 1.0); place(sfx, ct, braam(2.0, 41.2), 0.6)
+place(sfx, 2.05, boom(2.2), 1.0)
+place(sfx, E("COLD"), braam(3.5), 1.0); place(sfx, E("COLD"), impact(1.2), 0.8)
+drone_pad(E("COLD"), A("s_title"), [26, 27, 33, 38], 0.5, 0.05)
 place(music, 0.0, strings_trem(A("s_title"), [50, 51, 57], 7), 0.35)
 tick_run(0.3, A("s_title"), 0.5, 0.42, 0.3)
 place(sfx, T("U2") + 0.1, braam(3.0, 41.2), 1.0)

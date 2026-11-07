@@ -30,10 +30,10 @@ def squeeze(seg, max_gap=0.45, keep=0.32, thr=0.008):
     return np.concatenate(out)
 
 N3SRC = read("n3newf.wav")
-def cutn(a, b, pa=0.1, pb=0.3, src=None):
+def cutn(a, b, pa=0.1, pb=0.3, src=None, tight=False):
     a, b = a / TEMPO, b / TEMPO
     seg = (NARR if src is None else src)[max(0, int((a - pa) * SR)):int((b + pb) * SR)].copy()
-    seg = squeeze(seg); f = int(0.01 * SR); seg[:f] *= np.linspace(0, 1, f); seg[-f * 4:] *= np.linspace(1, 0, f * 4)
+    seg = squeeze(seg, 0.22, 0.14) if tight else squeeze(seg); f = int(0.01 * SR); seg[:f] *= np.linspace(0, 1, f); seg[-f * 4:] *= np.linspace(1, 0, f * 4)
     return seg
 
 N = {
@@ -81,10 +81,10 @@ BUB = {
  "U14": ["Turn around."],
 }
 H = {"H1": "who is this??", "H2": "why are you helping me?", "H3": "who ARE you"}
-JS = {"JS1": 1.7, "JS2": 2.2, "JS3": 1.6, "JS4": 4.2}
+JS = {"COLD": 2.7, "JS1": 1.7, "JS2": 2.2, "JS3": 1.6, "JS4": 4.2}
 
 SEQ = [
- (0.15, "N1"), (0.2, "U1"), (0.25, "N2"), (0.3, "U2"), (0.9, "N3"),
+ (0.0, "COLD"), (0.1, "N1"), (0.2, "U1"), (0.25, "N2"), (0.3, "U2"), (0.9, "N3"),
  (1.4, "U3"), (0.25, "H1"), (0.25, "U4"), (0.35, "N4"), (0.0, "JS1"), (0.1, "U5"), (0.35, "N5"), (0.3, "N6"), (0.25, "N7"),
  (1.3, "U6"), (0.45, "N8"), (0.3, "N9"), (0.45, "U7"), (0.9, "N10"), (0.0, "JS2"), (0.0, "N10b"),
  (1.3, "U8"), (0.4, "N11"), (0.3, "N12"),
@@ -108,7 +108,7 @@ nstem = np.zeros(int(200 * SR)); ustem = np.zeros(int(200 * SR))
 for gap, k in SEQ:
     t += gap
     if k in N:
-        a, b, txt = N[k]; seg = cutn(a, b, src=N3SRC if k == "N3" else None)
+        a, b, txt = N[k]; seg = cutn(a, b, src=N3SRC if k == "N3" else None, tight=(k == "N1"))
         i = int(t * SR); nstem[i:i + len(seg)] += seg
         d = len(seg) / SR
         events.append(dict(id=k, kind="N", t=round(t + 0.1, 3), end=round(t + d - 0.3, 3), text=txt))
@@ -127,6 +127,7 @@ for gap, k in SEQ:
         d = type_len(H[k]); events.append(dict(id=k, kind="H", t=round(t, 3), end=round(t + d, 3), text=H[k])); t += d
     else:
         events.append(dict(id=k, kind="S", t=round(t, 3), end=round(t + JS[k], 3))); t += JS[k]
+_turn = bv.trim(bv.TURN); _i = int(0.15 * SR); ustem[_i:_i + len(_turn)] += _turn   # cold open: 'Turn around.'
 END = t + 0.3; CARD = 2.6; total = END + CARD
 for name, st in (("narr48.wav", nstem), ("unk48.wav", ustem)):
     st = st[: int(total * SR)]

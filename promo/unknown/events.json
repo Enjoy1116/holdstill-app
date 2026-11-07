@@ -1,24 +1,30 @@
 {
  "events": [
   {
+   "id": "COLD",
+   "kind": "S",
+   "t": 0.0,
+   "end": 2.7
+  },
+  {
    "id": "N1",
    "kind": "N",
-   "t": 0.25,
-   "end": 7.334,
+   "t": 2.9,
+   "end": 9.494,
    "text": "At 7:25 AM, November 6th, I was watching videos on my phone... when an unknown number texted me."
   },
   {
    "id": "U1",
    "kind": "U",
-   "t": 7.664,
-   "end": 12.004,
+   "t": 9.824,
+   "end": 14.164,
    "bubbles": [
     [
-     7.664,
+     9.824,
      "At midnight, the world ends."
     ],
     [
-     9.614,
+     11.774,
      "Do exactly what I say, and you'll live."
     ]
    ]
@@ -26,18 +32,18 @@
   {
    "id": "N2",
    "kind": "N",
-   "t": 12.354,
-   "end": 14.912,
+   "t": 14.514,
+   "end": 17.072,
    "text": "I thought it was a prank. Then it texted again."
   },
   {
    "id": "U2",
    "kind": "U",
-   "t": 15.342,
-   "end": 18.252,
+   "t": 17.502,
+   "end": 20.412,
    "bubbles": [
     [
-     15.342,
+     17.502,
      "There's a pizza and a chair in your fridge."
     ]
    ]
@@ -45,26 +51,26 @@
   {
    "id": "N3",
    "kind": "N",
-   "t": 19.252,
-   "end": 26.892,
+   "t": 21.412,
+   "end": 29.052,
    "text": "I checked. There was a pizza... and a chair... inside my fridge. How did it know that? I was home alone."
   },
   {
    "id": "U3",
    "kind": "U",
-   "t": 28.422,
-   "end": 33.942,
+   "t": 30.582,
+   "end": 36.102,
    "bubbles": [
     [
-     28.422,
+     30.582,
      "Don't go to school today."
     ],
     [
-     29.982,
+     32.142,
      "Buy water, canned food, batteries."
     ],
     [
-     32.592,
+     34.752,
      "Go. NOW."
     ]
    ]
@@ -72,22 +78,22 @@
   {
    "id": "H1",
    "kind": "H",
-   "t": 34.192,
-   "end": 35.422,
+   "t": 36.352,
+   "end": 37.582,
    "text": "who is this??"
   },
   {
    "id": "U4",
    "kind": "U",
-   "t": 35.702,
-   "end": 37.592,
+   "t": 37.862,
+   "end": 39.752,
    "bubbles": [
     [
-     35.702,
+     37.862,
      "No time."
     ],
     [
-     36.762,
+     38.922,
      "Trust me."
     ]
    ]
@@ -95,32 +101,32 @@
   {
    "id": "N4",
    "kind": "N",
-   "t": 38.042,
-   "end": 44.533,
+   "t": 40.202,
+   "end": 46.693,
    "text": "So I went. The store was empty. The cashier kept coughing. And his eyes... were yellow."
   },
   {
    "id": "JS1",
    "kind": "S",
-   "t": 44.633,
-   "end": 46.333
+   "t": 46.793,
+   "end": 48.493
   },
   {
    "id": "U5",
    "kind": "U",
-   "t": 46.463,
-   "end": 51.323,
+   "t": 48.623,
+   "end": 53.483,
    "bubbles": [
     [
-     46.463,
+     48.623,
      "Don't touch him."
     ],
     [
-     47.573,
+     49.733,
      "Go home."
     ],
     [
-     48.533,
+     50.693,
      "Lock your door at exactly 11:58."
     ]
    ]
@@ -128,36 +134,36 @@
   {
    "id": "N5",
    "kind": "N",
-   "t": 51.773,
-   "end": 54.09,
+   "t": 53.933,
+   "end": 56.25,
    "text": "11:58. I locked the door."
   },
   {
    "id": "N6",
    "kind": "N",
-   "t": 54.59,
-   "end": 58.85,
+   "t": 56.75,
+   "end": 61.01,
    "text": "11:59. Every phone in the city started screaming."
   },
   {
    "id": "N7",
    "kind": "N",
-   "t": 59.3,
-   "end": 61.169,
+   "t": 61.46,
+   "end": 63.329,
    "text": "Then the real screaming started."
   },
   {
    "id": "U6",
    "kind": "U",
-   "t": 62.599,
-   "end": 67.359,
+   "t": 64.759,
+   "end": 69.519,
    "bubbles": [
     [
-     62.599,
+     64.759,
      "RULE 1: Don't open the door. For anyone."
     ],
     [
-     65.909,
+     68.069,
      "Not even people you know."
     ]
    ]
@@ -165,25 +171,25 @@
   {
    "id": "N8",
    "kind": "N",
-   "t": 67.909,
-   "end": 74.06,
+   "t": 70.069,
+   "end": 76.22,
    "text": "Day 3. Someone knocked. It was Mr. Hale, my neighbor. He was begging me to let him in."
   },
   {
    "id": "N9",
    "kind": "N",
-   "t": 74.56,
-   "end": 78.338,
+   "t": 76.72,
+   "end": 80.498,
    "text": "My hand was already on the lock... when my phone buzzed."
   },
   {
    "id": "U7",
    "kind": "U",
-   "t": 78.918,
-   "end": 79.488,
+   "t": 81.078,
+   "end": 81.648,
    "bubbles": [
     [
-     78.918,
+     81.078,
      "Don't."
     ]
    ]
@@ -191,35 +197,35 @@
   {
    "id": "N10",
    "kind": "N",
-   "t": 80.488,
-   "end": 84.114,
+   "t": 82.648,
+   "end": 86.274,
    "text": "I didn't open it. 10 seconds later, he stopped begging."
   },
   {
    "id": "JS2",
    "kind": "S",
-   "t": 84.214,
-   "end": 86.414
+   "t": 86.374,
+   "end": 88.574
   },
   {
    "id": "N10b",
    "kind": "N",
-   "t": 86.514,
-   "end": 88.01,
+   "t": 88.674,
+   "end": 90.17,
    "text": "And started scratching."
   },
   {
    "id": "U8",
    "kind": "U",
-   "t": 89.44,
-   "end": 93.35,
+   "t": 91.6,
+   "end": 95.51,
    "bubbles": [
     [
-     89.44,
+     91.6,
      "RULE 2: The roof. 3 AM."
     ],
     [
-     92.45,
+     94.61,
      "Come alone."
     ]
    ]
@@ -227,36 +233,36 @@
   {
    "id": "N11",
    "kind": "N",
-   "t": 93.85,
-   "end": 100.968,
+   "t": 96.01,
+   "end": 103.128,
    "text": "3 AM. Something was buzzing over the city. A drone. It dropped a box, right at my feet."
   },
   {
    "id": "N12",
    "kind": "N",
-   "t": 101.468,
-   "end": 109.742,
+   "t": 103.628,
+   "end": 111.902,
    "text": "Inside: a radio, a flashlight, and a map. One place was circled in red. The bridge. Day 30."
   },
   {
    "id": "N13",
    "kind": "N",
-   "t": 110.642,
-   "end": 112.612,
+   "t": 112.802,
+   "end": 114.772,
    "text": "Day 12. The power died."
   },
   {
    "id": "U9",
    "kind": "U",
-   "t": 114.042,
-   "end": 117.502,
+   "t": 116.202,
+   "end": 119.662,
    "bubbles": [
     [
-     114.042,
+     116.202,
      "RULE 3: They're drawn to light."
     ],
     [
-     116.292,
+     118.452,
      "Keep the curtains shut."
     ]
    ]
@@ -264,43 +270,43 @@
   {
    "id": "N14",
    "kind": "N",
-   "t": 117.902,
-   "end": 123.444,
+   "t": 120.062,
+   "end": 125.604,
    "text": "Across the street, someone turned on a flashlight. 30 seconds later... it went out."
   },
   {
    "id": "N15",
    "kind": "N",
-   "t": 124.344,
-   "end": 130.674,
+   "t": 126.504,
+   "end": 132.834,
    "text": "Day 18. Trucks. Men in white suits, with a logo I'd never seen before."
   },
   {
    "id": "N16",
    "kind": "N",
-   "t": 131.124,
-   "end": 134.575,
+   "t": 133.284,
+   "end": 136.735,
    "text": "They weren't killing the zombies. They were collecting them."
   },
   {
    "id": "N17",
    "kind": "N",
-   "t": 135.075,
-   "end": 138.046,
+   "t": 137.235,
+   "end": 140.206,
    "text": "Then one of them looked up. Right at my window."
   },
   {
    "id": "U10",
    "kind": "U",
-   "t": 138.376,
-   "end": 140.036,
+   "t": 140.536,
+   "end": 142.196,
    "bubbles": [
     [
-     138.376,
+     140.536,
      "GET DOWN."
     ],
     [
-     139.356,
+     141.516,
      "NOW."
     ]
    ]
@@ -308,25 +314,25 @@
   {
    "id": "N18",
    "kind": "N",
-   "t": 141.036,
-   "end": 143.547,
+   "t": 143.196,
+   "end": 145.707,
    "text": "Day 23. I had to ask."
   },
   {
    "id": "H2",
    "kind": "H",
-   "t": 143.897,
-   "end": 145.727,
+   "t": 146.057,
+   "end": 147.887,
    "text": "why are you helping me?"
   },
   {
    "id": "U11",
    "kind": "U",
-   "t": 146.157,
-   "end": 147.287,
+   "t": 148.317,
+   "end": 149.447,
    "bubbles": [
     [
-     146.157,
+     148.317,
      "Because I owe you."
     ]
    ]
@@ -334,22 +340,22 @@
   {
    "id": "H3",
    "kind": "H",
-   "t": 147.537,
-   "end": 148.647,
+   "t": 149.697,
+   "end": 150.807,
    "text": "who ARE you"
   },
   {
    "id": "U12",
    "kind": "U",
-   "t": 149.277,
-   "end": 152.077,
+   "t": 151.437,
+   "end": 154.237,
    "bubbles": [
     [
-     149.277,
+     151.437,
      "You used to be scared of thunder."
     ],
     [
-     151.107,
+     153.267,
      "You still are."
     ]
    ]
@@ -357,32 +363,32 @@
   {
    "id": "JS3",
    "kind": "S",
-   "t": 152.077,
-   "end": 153.677
+   "t": 154.237,
+   "end": 155.837
   },
   {
    "id": "N19",
    "kind": "N",
-   "t": 153.927,
-   "end": 156.791,
+   "t": 156.087,
+   "end": 158.951,
    "text": "How did they know that? Nobody knew that."
   },
   {
    "id": "U13",
    "kind": "U",
-   "t": 157.921,
-   "end": 163.181,
+   "t": 160.081,
+   "end": 165.341,
    "bubbles": [
     [
-     157.921,
+     160.081,
      "Tomorrow. 6 AM."
     ],
     [
-     160.081,
+     162.241,
      "Get to the bridge."
     ],
     [
-     160.951,
+     163.111,
      "Don't stop. Don't look back."
     ]
    ]
@@ -390,39 +396,39 @@
   {
    "id": "N20",
    "kind": "N",
-   "t": 163.581,
-   "end": 165.544,
+   "t": 165.741,
+   "end": 167.704,
    "text": "My phone was at 1%."
   },
   {
    "id": "N21",
    "kind": "N",
-   "t": 166.444,
-   "end": 172.267,
+   "t": 168.604,
+   "end": 174.427,
    "text": "Day 30. I ran. I didn't stop. And they heard every single step."
   },
   {
    "id": "N22",
    "kind": "N",
-   "t": 172.767,
-   "end": 176.473,
+   "t": 174.927,
+   "end": 178.633,
    "text": "I made it to the bridge. It was empty. Nobody was there."
   },
   {
    "id": "N23",
    "kind": "N",
-   "t": 177.073,
-   "end": 178.382,
+   "t": 179.233,
+   "end": 180.542,
    "text": "Then my phone buzzed."
   },
   {
    "id": "U14",
    "kind": "U",
-   "t": 179.012,
-   "end": 180.502,
+   "t": 181.172,
+   "end": 182.662,
    "bubbles": [
     [
-     179.012,
+     181.172,
      "Turn around."
     ]
    ]
@@ -430,24 +436,24 @@
   {
    "id": "JS4",
    "kind": "S",
-   "t": 180.502,
-   "end": 184.702
+   "t": 182.662,
+   "end": 186.862
   },
   {
    "id": "N24",
    "kind": "N",
-   "t": 184.802,
-   "end": 187.792,
+   "t": 186.962,
+   "end": 189.952,
    "text": "Behind me... was a man in a white suit."
   },
   {
    "id": "N25",
    "kind": "N",
-   "t": 189.292,
-   "end": 193.351,
+   "t": 191.452,
+   "end": 195.511,
    "text": "Who is the unknown number? Comment your guess. Follow for part 2."
   }
  ],
- "story_end": 193.751,
- "total": 196.351
+ "story_end": 195.911,
+ "total": 198.511
 }

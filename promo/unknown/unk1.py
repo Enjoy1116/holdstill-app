@@ -454,6 +454,44 @@ def s_fridge(c, t, T_):
     dark(c, 0.3 * (1 - op))
     c.restore()
 
+def s_cold(c, t, T_):
+    """Cold open: 2.7 s of the scariest moments, flash-cut, before the story starts at 7:25 AM."""
+    cuts = [0.0, 0.6, 1.1, 1.6, 2.05]
+    i = max(j for j, a in enumerate(cuts) if t >= a); lt = t - cuts[i]
+    if i == 0:
+        c.save(); cam(c, 1.5 + 0.2 * lt, 400, 1150); bridge(c, t); fog_layer(c, t, 1.0)
+        stick(c, 170, 1400, 470, idle(t, 0.3), SUIT, face=1, look=0.4); helix_logo(c, 205, 1205, 0.4)
+        stick(c, 560, 1400, 430, idle(t, 0.3), HERO, face=1, expr="worry", look=0.6, scarf_t=t); c.restore()
+        q = back_out(clamp(lt / 0.15), 2.5)
+        c.save(); c.translate(W / 2, 600); c.scale(q, q)
+        text_c(c, "TURN AROUND.", 0, 0, font("Lucky", 122), C(255, 40, 50), C(0, 0, 0), 24); c.restore()
+    elif i == 1: s_peep(c, 1.6 + lt, T_)
+    elif i == 2: s_trucks(c, 3.2 + lt, T_)
+    elif i == 3: s_battery(c, lt, T_)
+    else:
+        rect(c, 0, 0, W, H, fill(C(4, 4, 8)))
+        q = back_out(clamp(lt / 0.18), 2.2); jit = random.Random(int(t * 30)).uniform(-6, 6)
+        c.save(); c.translate(W / 2 + jit, 900); c.scale(q, q)
+        text_c(c, "WHO IS", 0, 0, font("Lucky", 150), C(255, 255, 255), OUT, 22)
+        text_c(c, "TEXTING HIM?", 0, 170, font("Lucky", 140), C(254, 97, 0), OUT, 22); c.restore()
+    if lt < 0.06: rect(c, 0, 0, W, H, fill(C(255, 255, 255, int(220 * (1 - lt / 0.06)))))
+
+PROMPTS = None
+def draw_prompts(c, t):
+    global PROMPTS
+    if PROMPTS is None:
+        PROMPTS = [(T("N8") + 0.6, 3.0, "WOULD YOU OPEN THE DOOR?", "COMMENT YES OR NO"),
+                   (T("N12") + 1.0, 3.2, "WHO IS TEXTING HIM?", "COMMENT YOUR GUESS"),
+                   (T("N16"), 3.0, "PART 2 IS EVEN SCARIER", "FOLLOW SO YOU DON'T MISS IT")]
+    for a, d, l1, l2 in PROMPTS:
+        if a <= t < a + d:
+            lt = t - a; k = back_out(clamp(lt / 0.25), 2.0) * (1 - ease(clamp((lt - d + 0.25) / 0.25)))
+            c.save(); c.translate(W / 2, 470); c.rotate(math.sin(lt * 6) * 1.5); c.scale(k, k)
+            rrect(c, -430, -78, 430, 92, 46, fill(C(255, 255, 255))); rrect(c, -430, -78, 430, 92, 46, stroke(C(254, 97, 0), 8))
+            text_c(c, l1, 0, -8, font("Lucky", 62), C(17, 17, 17))
+            text_c(c, l2, 0, 62, font("Anton", 44), C(254, 97, 0))
+            c.restore()
+
 def s_title(c, t, T_):
     rect(c, 0, 0, W, H, fill(C(4, 4, 8)))
     rnd = random.Random(int(t * 30))
@@ -1207,7 +1245,7 @@ def s_end(c, t, T_):
 # ---------------------------------------------------------------- shot list (start, end, fn, day, transition)
 def _shots():
     b = [
-     (0.0, s_pov, None, None), (T("U1") - 0.4, s_hook, None, "cut"), (E("U2") + 0.6, s_fridge, None, "cut"), (E("N3") + 0.35, s_title, None, "cut"), (T("U3") - 0.45, s_day0, 0, "flash"),
+     (0.0, s_cold, None, None), (E("COLD"), s_pov, None, "cut"), (T("U1") - 0.4, s_hook, None, "cut"), (E("U2") + 0.6, s_fridge, None, "cut"), (E("N3") + 0.35, s_title, None, "cut"), (T("U3") - 0.45, s_day0, 0, "flash"),
      (T("N4") - 0.05, s_store, 0, "punch"), (T("N5") - 0.05, s_lock, 0, "punch"), (T("N6") - 0.05, s_alert, 0, "flash"),
      (T("N7") - 0.1, s_chaos, 0, "punch"), (T("U6") - 1.2, s_rule1, 1, "cut"),
      (T("N8") - 0.1, s_knock, 3, "punch"), (frac("N8", 0.33), s_peep, 3, "punch"), (T("N9") - 0.1, s_hand, 3, "punch"),
@@ -1253,7 +1291,7 @@ def grain(c, t):
     p = skia.Paint(); p.setBlendMode(skia.BlendMode.kOverlay)
     c.drawImageRect(GRAIN, skia.Rect.MakeLTRB(-ox, -oy, W - ox + 400, H - oy + 600), skia.SamplingOptions(), p)
 
-NOVIG = {s_title, s_alert, s_black, s_cta, s_end, s_battery, s_chaos, s_trucks, s_peep, s_peep2, s_across, s_lookup, s_turn}
+NOVIG = {s_cold, s_title, s_alert, s_black, s_cta, s_end, s_battery, s_chaos, s_trucks, s_peep, s_peep2, s_across, s_lookup, s_turn}
 GT = 0.0
 STILL = None
 RULES = [("U6", "RULE #1"), ("U8", "RULE #2"), ("U9", "RULE #3")]
@@ -1301,7 +1339,7 @@ def in_screamer(t):
 def frame(c, t):
     global GT, HANDHELD_OFF
     GT = t
-    if HANDHELD_OFF is None: HANDHELD_OFF = {s_title, s_black, s_cta, s_end, s_battery, s_alert}
+    if HANDHELD_OFF is None: HANDHELD_OFF = {s_cold, s_title, s_black, s_cta, s_end, s_battery, s_alert}
     c.clear(C(0, 0, 0))
     for a, b, fn, d, tr in SHOTS:
         if a <= t < b:
@@ -1325,6 +1363,7 @@ def frame(c, t):
     draw_chat(c, t)
     draw_banners(c, t)
     draw_rulecards(c, t)
+    draw_prompts(c, t)
     draw_counter(c, t)
     if day_at(t) is not None or t < E("N3") + 0.3: draw_caption(c, t)
     grain(c, t)
