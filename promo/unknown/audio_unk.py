@@ -107,7 +107,7 @@ A = lambda n: st[n][0]; B = lambda n: st[n][1]
 drone_pad(0, A("s_title"), [26, 33, 38, 41], 0.55)
 for k in range(int(A("s_title") / 0.5)): place(music, 0.2 + k * 0.5, tick(), 0.35 if k % 2 == 0 else 0.22)
 place(sfx, 0.0, boom(), 0.5)
-place(sfx, frac("N1", 0.76), vibrate(0.7), 0.9); place(sfx, frac("N1", 0.76), ding(), 0.6); place(sfx, frac("N1", 0.76) + 0.1, boom(1.8), 0.8)
+place(sfx, frac("N1", 0.76) + 0.1, boom(1.8), 0.8)
 place(sfx, T("U2") + 0.2, boom(1.6), 0.8)
 place(sfx, A("s_title") - 1.1, reverse_riser(1.1), 0.7)
 place(sfx, A("s_title"), impact(1.6), 1.0); place(sfx, A("s_title"), boom(2.0), 0.8)
@@ -159,12 +159,10 @@ beat(A("s_cta"), TOTAL - 0.3, 92, 0.6, hats=True, snares=True, half=True, bass=[
 for a, b, fn, d, tr in SHOTS[1:]: place(sfx, a - 0.2, whoosh(0.4), 0.35)
 for e in unk1.D["events"]:
     if e["kind"] == "U":
-        for bt, _ in e["bubbles"]: place(sfx, bt, ding(), 0.55)
-        if e["id"] in unk1.BANNERS: place(sfx, e["t"] - 0.1, vibrate(0.7), 0.8)
+        pass  # no texting sounds (Tomer)
     elif e["kind"] == "H":
         n = len(e["text"]); dur = e["end"] - e["t"] - 0.55
-        for i in range(n): place(sfx, e["t"] + 0.15 + dur * i / n, click(), 0.6)
-        place(sfx, e["end"] - 0.2, send(), 0.6)
+        pass
 place(sfx, E("N9") - 0.5, vibrate(0.9), 0.9)
 place(sfx, frac("N23", 0.7), vibrate(0.9), 0.9)
 # store
